@@ -13,25 +13,25 @@ class YarnMethodCommand : Command() {
     override val helpMessage: String
         get() = "!ym <methodName> Optional[<version> | latest | latestStable]"
 
-    override fun handle(commandMessage: CommandMessage): Message {
-        return MessageResponse(commandMessage.scene, commandMessage.from) {
+    override fun handle(commandMessage: CommandMessage): MessageResponse? {
+        return commandMessage.createResponse() {
             if (commandMessage.args.isEmpty()) {
                 +helpMessage
-                return@MessageResponse
+                return@createResponse
             }
             val version = versionRepository.resolve(commandMessage[1]) ?: run {
                 +"Expected Minecraft Version"
-                return@MessageResponse
+                return@createResponse
             }
             val data = mappingRepository.getMappingData(version)
             val className = commandMessage[0] ?: run {
                 +"Expected Method Name"
-                return@MessageResponse
+                return@createResponse
             }
             val results = data.findMethods(className, data.resolveNamespaces(namespaces, false))
             if (results.isEmpty()) {
                 +"no matches for the given method name, MC version and query namespace"
-                return@MessageResponse
+                return@createResponse
             }
             +"$version matches"
             for (result in results) {
@@ -66,6 +66,6 @@ class YarnMethodCommand : Command() {
 
             }
             +"query ns: ${namespaces.joinToString(",")}"
-        }.toMessage(forward = true)
+        }
     }
 }

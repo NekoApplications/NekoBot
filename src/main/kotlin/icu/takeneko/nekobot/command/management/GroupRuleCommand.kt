@@ -17,18 +17,18 @@ class GroupRuleCommand : Command() {
     override val helpMessage: String
         get() = "!gr [enable | disable | e | d | p] <group> [<command> | ALL]"
 
-    override fun handle(commandMessage: CommandMessage): Message {
-        if (commandMessage.from != MessageType.PRIVATE || commandMessage.scene !in config.operator) {
-            return Message(commandMessage.scene, commandMessage.from, "", status = false, forward = false)
+    override fun handle(commandMessage: CommandMessage): MessageResponse? {
+        if (commandMessage.from != MessageType.PRIVATE || commandMessage.sender !in config.operator) {
+            return null
         }
-        return MessageResponse(commandMessage.scene, commandMessage.from) {
+        return commandMessage.createResponse {
             if (commandMessage.args.isEmpty()) {
                 +helpMessage
-                return@MessageResponse
+                return@createResponse
             }
             val action = commandMessage[0] ?: run {
                 +"Expected action: [enable | disable | e | d]"
-                return@MessageResponse
+                return@createResponse
             }
             if (action == "p"){
                 +"**Group Settings**"
@@ -39,15 +39,15 @@ class GroupRuleCommand : Command() {
                 config.groupRules.forEach {
                     +"${it.key}: ${it.value.joinToString(", ")}"
                 }
-                return@MessageResponse
+                return@createResponse
             }
             val group = commandMessage[1] ?: run {
                 +"Expected group"
-                return@MessageResponse
+                return@createResponse
             }
             val command = commandMessage[2] ?: run {
                 +"Expected command"
-                return@MessageResponse
+                return@createResponse
             }
 
             when (action) {
@@ -57,7 +57,7 @@ class GroupRuleCommand : Command() {
                             GroupRuleSetting.enableCommandForGroup(group, c)
                             +"Enabled command $c for group $group"
                         }
-                        return@MessageResponse
+                        return@createResponse
                     }
                     if ("+" in command) {
                         command.split("+").forEach {
@@ -68,11 +68,11 @@ class GroupRuleCommand : Command() {
                             GroupRuleSetting.enableCommandForGroup(group, it)
                             +"Enabled command $it for group $group"
                         }
-                        return@MessageResponse
+                        return@createResponse
                     }
                     if (command !in CommandManager.commands) {
                         +"Command $command not registered."
-                        return@MessageResponse
+                        return@createResponse
                     }
                     GroupRuleSetting.enableCommandForGroup(group, command)
                     +"Enabled command $command for group $group"
@@ -84,7 +84,7 @@ class GroupRuleCommand : Command() {
                             GroupRuleSetting.enableCommandForGroup(group, c)
                             +"Disabled command $c for group $group"
                         }
-                        return@MessageResponse
+                        return@createResponse
                     }
                     if ("+" in command) {
                         command.split("+").forEach {
@@ -95,11 +95,11 @@ class GroupRuleCommand : Command() {
                             GroupRuleSetting.disableCommandForGroup(group, it)
                             +"Disabled command $it for group $group"
                         }
-                        return@MessageResponse
+                        return@createResponse
                     }
                     if (command !in CommandManager.commands) {
                         +"Command $command not registered."
-                        return@MessageResponse
+                        return@createResponse
                     }
                     GroupRuleSetting.disableCommandForGroup(group, command)
                     +"Disabled command $command for group $group"
@@ -108,6 +108,6 @@ class GroupRuleCommand : Command() {
                     +"Expected action: [enable | disable | e | d | p]"
                 }
             }
-        }.toMessage()
+        }
     }
 }

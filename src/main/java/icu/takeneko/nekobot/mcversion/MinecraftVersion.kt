@@ -1,8 +1,8 @@
 package icu.takeneko.nekobot.mcversion
 
 import com.google.gson.annotations.SerializedName
-import io.ktor.http.*
 import icu.takeneko.nekobot.util.gson
+import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse.BodyHandlers
@@ -17,7 +17,7 @@ object MinecraftVersion {
     lateinit var latestVersion: String
     val versions = mutableMapOf<String, VersionData>()
     fun update() {
-        val request = HttpRequest.newBuilder().GET().uri(Url(versionManifestUrl).toURI()).build()
+        val request = HttpRequest.newBuilder().GET().uri(URI(versionManifestUrl)).build()
         httpClient.sendAsync(request, BodyHandlers.ofString()).thenAccept {
             val resp = it.body()
             versionManifest = gson.fromJson(resp, VersionManifest::class.java)

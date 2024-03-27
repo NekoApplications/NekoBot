@@ -14,25 +14,25 @@ class MinecraftVersionCommand : Command() {
     override val helpMessage: String
         get() = "!mv Optional[<version> | latest | latestStable]"
 
-    override fun handle(commandMessage: CommandMessage): Message {
-        return MessageResponse(commandMessage.scene, commandMessage.from) {
+    override fun handle(commandMessage: CommandMessage): MessageResponse? {
+        return commandMessage.createResponse {
             +"**Minecraft Version**"
             +""
             val version = commandMessage[0] ?: run {
                 +"**Latest Stable Version:** ${MinecraftVersion.latestStableVersion}"
                 +"**Latest Snapshot Version:** ${MinecraftVersion.latestVersion}"
-                return@MessageResponse
+                return@createResponse
             }
             val minecraftVersion = resolve(version) ?: run {
                 +"Expected version: [<version> | latest | latestStable]"
-                return@MessageResponse
+                return@createResponse
             }
             val versionData = MinecraftVersion[minecraftVersion]!!
             +"**Version:** ${versionData.id}"
             +"**Version Type:** ${versionData.type}"
             +"**Release Time:** ${versionData.releaseTime}"
             +"**Version Json Download Url:** ${versionData.url}"
-        }.toMessage()
+        }
     }
 
     private fun resolve(version: String?) =

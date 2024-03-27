@@ -3,7 +3,6 @@ package icu.takeneko.nekobot.command.utility
 import com.github.murzagalin.evaluator.Evaluator
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
-import icu.takeneko.nekobot.message.Message
 import icu.takeneko.nekobot.message.MessageResponse
 
 class CalculatorCommand : Command() {
@@ -16,12 +15,12 @@ class CalculatorCommand : Command() {
 
     private val evaluator = Evaluator()
 
-    override fun handle(commandMessage: CommandMessage): Message {
-        return MessageResponse(commandMessage.scene, commandMessage.from) {
+    override fun handle(commandMessage: CommandMessage): MessageResponse {
+        return commandMessage.createResponse() {
             val expression = commandMessage.args.run {
                 if (isEmpty()){
                     +helpMessage
-                    return@MessageResponse
+                    return@createResponse
                 }
                 joinToString(" ")
             }
@@ -32,6 +31,6 @@ class CalculatorCommand : Command() {
                 +"~~~"
                 +(e.message ?: "Expected expression")
             }
-        }.toMessage()
+        }
     }
 }

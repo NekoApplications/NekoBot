@@ -11,8 +11,8 @@ class StatusCommand : Command() {
     override val commandPrefix: String = "!stat"
     override val helpMessage: String = "!stat"
 
-    override fun handle(commandMessage: CommandMessage): Message =
-        MessageResponse(commandMessage.scene, commandMessage.from) {
+    override fun handle(commandMessage: CommandMessage): MessageResponse? =
+        commandMessage.createResponse() {
             + "${System.currentTimeMillis()} NekoBot ${getVersionInfoString()}"
-        }.toMessage()
+        }
 }

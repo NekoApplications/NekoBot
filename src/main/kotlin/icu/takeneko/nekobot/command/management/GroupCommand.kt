@@ -16,22 +16,22 @@ class GroupCommand : Command() {
     override val helpMessage: String
         get() = "!g [enable | disable | e | d] <group> "
 
-    override fun handle(commandMessage: CommandMessage): Message {
-        if (commandMessage.from != MessageType.PRIVATE || commandMessage.scene !in config.operator) {
-            return Message(commandMessage.scene, commandMessage.from, "", status = false, forward = false)
+    override fun handle(commandMessage: CommandMessage): MessageResponse? {
+        if (commandMessage.from != MessageType.PRIVATE || commandMessage.sender !in config.operator) {
+            return null
         }
-        return MessageResponse(commandMessage.scene, commandMessage.from) {
+        return commandMessage.createResponse {
             if (commandMessage.args.isEmpty()) {
                 +helpMessage
-                return@MessageResponse
+                return@createResponse
             }
             val action = commandMessage[0] ?: run {
                 +"Expected action: [enable | disable | e | d]"
-                return@MessageResponse
+                return@createResponse
             }
             val group = commandMessage[1] ?: run {
                 +"Expected group"
-                return@MessageResponse
+                return@createResponse
             }
             when (action) {
                 "e", "enable" -> {
@@ -48,6 +48,6 @@ class GroupCommand : Command() {
                     +"Expected action: [enable | disable | e | d]"
                 }
             }
-        }.toMessage()
+        }
     }
 }

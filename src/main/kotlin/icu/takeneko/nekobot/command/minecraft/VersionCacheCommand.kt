@@ -13,22 +13,22 @@ class VersionCacheCommand : Command() {
     override val helpMessage: String
         get() = "!vc [p | {[a | add] [<version> | latest | latestStable]}]"
 
-    override fun handle(commandMessage: CommandMessage): Message {
-        return MessageResponse(commandMessage.scene, commandMessage.from) {
+    override fun handle(commandMessage: CommandMessage): MessageResponse? {
+        return commandMessage.createResponse {
             val scene = commandMessage[0] ?: run {
                 +helpMessage
-                return@MessageResponse
+                return@createResponse
             }
             when (scene) {
                 "a","add" -> {
                     val version = versionRepository.resolve(commandMessage[1]) ?: run {
                         + "Expected version: [<version> | latest | latestStable]"
-                        return@MessageResponse
+                        return@createResponse
                     }
                     if (version !in mappingRepository.cachedVersions) {
                         mappingRepository.getMappingData(version)
                         +"Created Mapping cache for version $version"
-                        return@MessageResponse
+                        return@createResponse
                     }
                     +"Version $version already cached."
                 }
@@ -41,6 +41,6 @@ class VersionCacheCommand : Command() {
                 }
                 else -> +helpMessage
             }
-        }.toMessage()
+        }
     }
 }

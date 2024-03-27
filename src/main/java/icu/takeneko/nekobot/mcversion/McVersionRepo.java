@@ -34,166 +34,166 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class McVersionRepo {
-	public final String DEFAULT_VERSION = "latestStable";
-	private final int updatePeriodSec = 120;
-	private static final String metaHost = "meta.fabricmc.net";
+    public final String DEFAULT_VERSION = "latestStable";
+    private final int updatePeriodSec = 120;
+    private static final String metaHost = "meta.fabricmc.net";
 
-	private final Logger LOGGER = LoggerFactory.getLogger(McVersionRepo.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(McVersionRepo.class);
 
-	private final List<McVersionUpdateHandler> updateHandlers = new CopyOnWriteArrayList<>();
-	private final Map<String, Boolean> validVersions = new ConcurrentHashMap<>();
-	private volatile String latest;
-	private volatile String latestStable;
+    private final List<McVersionUpdateHandler> updateHandlers = new CopyOnWriteArrayList<>();
+    private final Map<String, Boolean> validVersions = new ConcurrentHashMap<>();
+    private volatile String latest;
+    private volatile String latestStable;
 
-	public @Nullable String getLatest() {
-		return latest;
-	}
+    public @Nullable String getLatest() {
+        return latest;
+    }
 
-	public @Nullable String getLatestStable() {
-		return latestStable;
-	}
+    public @Nullable String getLatestStable() {
+        return latestStable;
+    }
 
-	public boolean isValidVersion(String version) {
-		if (version == null) return false;
-		if (version.equalsIgnoreCase("latest") || version.equalsIgnoreCase("latestStable")) return true;
-		if (version.contains("/")) return false;
+    public boolean isValidVersion(String version) {
+        if (version == null) return false;
+        if (version.equalsIgnoreCase("latest") || version.equalsIgnoreCase("latestStable")) return true;
+        if (version.contains("/")) return false;
 
-		return validVersions.computeIfAbsent(version, McVersionRepo::checkVersion);
-	}
+        return validVersions.computeIfAbsent(version, McVersionRepo::checkVersion);
+    }
 
-	private static boolean checkVersion(String version) {
-		try {
-			HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri(metaHost, "/v2/versions/game"));
+    private static boolean checkVersion(String version) {
+        try {
+            HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri(metaHost, "/v2/versions/game"));
 
-			if (response.statusCode() != 200) {
-				response.body().close();
-				throw new IOException("request failed with code "+response.statusCode());
-			}
+            if (response.statusCode() != 200) {
+                response.body().close();
+                throw new IOException("request failed with code " + response.statusCode());
+            }
 
-			try (JsonReader reader = new JsonReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8))) {
-				reader.beginArray();
+            try (JsonReader reader = new JsonReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8))) {
+                reader.beginArray();
 
-				while (reader.hasNext()) {
-					reader.beginObject();
+                while (reader.hasNext()) {
+                    reader.beginObject();
 
-					while (reader.hasNext()) {
-						if (reader.nextName().equals("version")) {
-							if (reader.nextString().equals(version)) return true;
-						} else {
-							reader.skipValue();
-						}
-					}
+                    while (reader.hasNext()) {
+                        if (reader.nextName().equals("version")) {
+                            if (reader.nextString().equals(version)) return true;
+                        } else {
+                            reader.skipValue();
+                        }
+                    }
 
-					reader.endObject();
-				}
-			}
-		} catch (URISyntaxException | IOException | InterruptedException e) {
-			throw new RuntimeException(e);
-		}
+                    reader.endObject();
+                }
+            }
+        } catch (URISyntaxException | IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	/**
-	 * Resolve latest/latestStable to the actual versions, null to the latest stable version, otherwise pass through.
-	 */
-	public @Nullable String resolve(String name) {
-		if (name == null) name = DEFAULT_VERSION;
+    /**
+     * Resolve latest/latestStable to the actual versions, null to the latest stable version, otherwise pass through.
+     */
+    public @Nullable String resolve(String name) {
+        if (name == null) name = DEFAULT_VERSION;
 
-		if (name.equalsIgnoreCase("latestStable")) {
-			return latestStable;
-		} else if (name.equalsIgnoreCase("latest")) {
-			return latest;
-		} else if (isValidVersion(name)) {
-			return name;
-		} else {
-			return null;
-		}
-	}
+        if (name.equalsIgnoreCase("latestStable")) {
+            return latestStable;
+        } else if (name.equalsIgnoreCase("latest")) {
+            return latest;
+        } else if (isValidVersion(name)) {
+            return name;
+        } else {
+            return null;
+        }
+    }
 
-	public void registerUpdateHandler(McVersionUpdateHandler handler) {
-		updateHandlers.add(handler);
+    public void registerUpdateHandler(McVersionUpdateHandler handler) {
+        updateHandlers.add(handler);
 
-		String latest = this.latest;
-		String latestStable = this.latestStable;
+        String latest = this.latest;
+        String latestStable = this.latestStable;
 
-		if (latest != null && latestStable != null) {
-			handler.onMcVersionUpdate(latest, latestStable);
-		}
-	}
+        if (latest != null && latestStable != null) {
+            handler.onMcVersionUpdate(latest, latestStable);
+        }
+    }
 
-	public void update() {
-		try {
-			HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri(metaHost, "/v2/versions/game"));
+    public void update() {
+        try {
+            HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri(metaHost, "/v2/versions/game"));
 
-			if (response.statusCode() != 200) {
-				response.body().close();
-				throw new IOException("request failed with code "+response.statusCode());
-			}
+            if (response.statusCode() != 200) {
+                response.body().close();
+                throw new IOException("request failed with code " + response.statusCode());
+            }
 
-			String latest = null;
-			String latestStable = null;
+            String latest = null;
+            String latestStable = null;
 
-			try (JsonReader reader = new JsonReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8))) {
-				boolean detectedLatest = false;
+            try (JsonReader reader = new JsonReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8))) {
+                boolean detectedLatest = false;
 
-				reader.beginArray();
+                reader.beginArray();
 
-				while (reader.hasNext()) {
-					Boolean stable = null;
-					String version = null;
+                while (reader.hasNext()) {
+                    Boolean stable = null;
+                    String version = null;
 
-					reader.beginObject();
+                    reader.beginObject();
 
-					while (reader.hasNext()) {
-						switch (reader.nextName()) {
-						case "version" -> version = reader.nextString();
-						case "stable" -> stable = reader.nextBoolean();
-						default -> reader.skipValue();
-						}
-					}
+                    while (reader.hasNext()) {
+                        switch (reader.nextName()) {
+                            case "version" -> version = reader.nextString();
+                            case "stable" -> stable = reader.nextBoolean();
+                            default -> reader.skipValue();
+                        }
+                    }
 
-					reader.endObject();
+                    reader.endObject();
 
-					if (stable == null || version == null) {
-						throw new IOException("malformed version entry, missing version or stable attribute");
-					}
+                    if (stable == null || version == null) {
+                        throw new IOException("malformed version entry, missing version or stable attribute");
+                    }
 
-					if (!detectedLatest) {
-						latest = version;
-						detectedLatest = true;
-					}
+                    if (!detectedLatest) {
+                        latest = version;
+                        detectedLatest = true;
+                    }
 
-					if (stable) {
-						latestStable = version;
-						break;
-					}
-				}
-			}
+                    if (stable) {
+                        latestStable = version;
+                        break;
+                    }
+                }
+            }
 
-			if (latest == null || latestStable == null) {
-				throw new IOException("no mc version entries");
-			} else if (latest.equals(this.latest) && latestStable.equals(this.latestStable)) {
-				return;
-			}
+            if (latest == null || latestStable == null) {
+                throw new IOException("no mc version entries");
+            } else if (latest.equals(this.latest) && latestStable.equals(this.latestStable)) {
+                return;
+            }
 
-			this.latest = latest;
-			this.latestStable = latestStable;
+            this.latest = latest;
+            this.latestStable = latestStable;
 
-			validVersions.clear();
-			if (latest != null) validVersions.put(latest, true);
-			if (latestStable != null) validVersions.put(latestStable, true);
+            validVersions.clear();
+            if (latest != null) validVersions.put(latest, true);
+            if (latestStable != null) validVersions.put(latestStable, true);
 
-			for (McVersionUpdateHandler handler : updateHandlers) {
-				handler.onMcVersionUpdate(latest, latestStable);
-			}
-		} catch (Throwable t) {
-			HttpUtil.logError("mc version retrieval failed", t, LOGGER);
-		}
-	}
+            for (McVersionUpdateHandler handler : updateHandlers) {
+                handler.onMcVersionUpdate(latest, latestStable);
+            }
+        } catch (Throwable t) {
+            HttpUtil.logError("mc version retrieval failed", t, LOGGER);
+        }
+    }
 
-	@FunctionalInterface
-	public interface McVersionUpdateHandler {
-		void onMcVersionUpdate(String latest, String latestStable);
-	}
+    @FunctionalInterface
+    public interface McVersionUpdateHandler {
+        void onMcVersionUpdate(String latest, String latestStable);
+    }
 }

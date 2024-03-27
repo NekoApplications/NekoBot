@@ -15,18 +15,18 @@ class HelpCommand :Command() {
     override val helpMessage: String
         get() = "!help"
 
-    override fun handle(commandMessage: CommandMessage): Message {
+    override fun handle(commandMessage: CommandMessage): MessageResponse? {
 //        if (commandMessage.from != MessageType.PRIVATE || commandMessage.scene !in config.operator) {
 //            return Message(commandMessage.scene, commandMessage.from, "", status = false, forward = false)
 //        }
-        return MessageResponse(commandMessage.scene, commandMessage.from){
+        return commandMessage.createResponse{
             + "**Commands**"
             +""
             CommandManager.commands.forEach {
-                if (commandMessage.from == MessageType.PRIVATE || GroupRuleSetting.commandEnabledFor(commandMessage.scene, it.key)) {
+                if (commandMessage.from == MessageType.PRIVATE || GroupRuleSetting.commandEnabledFor(commandMessage.group!!, it.key)) {
                     +it.value.helpMessage
                 }
             }
-        }.toMessage()
+        }
     }
 }

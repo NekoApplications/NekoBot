@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 import java.io.ByteArrayOutputStream
 
@@ -6,8 +8,9 @@ plugins {
     java
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
-    id("com.github.gmazzo.buildconfig") version "3.1.0"
-    id("net.mamoe.mirai-console") version "2.16.0"
+    //id("com.github.gmazzo.buildconfig") version "3.1.0" //什么猪鼻插件
+    //id("net.mamoe.mirai-console") version "2.16.0" //什么猪鼻插件
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "icu.takeneko"
@@ -15,39 +18,44 @@ version = "0.0.1"
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
     maven("https://maven.fabricmc.net")
 }
 
-java.sourceCompatibility = JavaVersion.VERSION_17
+tasks.withType<JavaCompile>{
+    this.sourceCompatibility = "17"
+    this.targetCompatibility = "17"
+}
 
 kotlin {
     jvmToolchain(17)
 }
 
-buildConfig {
-    className("BuildConstants")
-    packageName("icu.takeneko.nekobot")
-    useKotlinOutput()
-    buildConfigField("String", "VERSION", "\"${project.version}\"")
-}
-
-mirai {
-    noTestCore = true
-    setupConsoleTestRuntime {
-        classpath = classpath.filter {
-            !it.nameWithoutExtension.startsWith("mirai-core-jvm")
-        }
-    }
-}
+//mirai {
+//    noTestCore = true
+//    setupConsoleTestRuntime {
+//        classpath = classpath.filter {
+//            !it.nameWithoutExtension.startsWith("mirai-core-jvm")
+//        }
+//    }
+//}
 
 dependencies {
     val overflowVersion = "2.16.0-695e4e1-SNAPSHOT"
+    compileOnly("org.slf4j:slf4j-api:1.7.36")
     compileOnly("top.mrxiaom:overflow-core-api:$overflowVersion")
-    testConsoleRuntime("top.mrxiaom:overflow-core:$overflowVersion")
+    //testConsoleRuntime("top.mrxiaom:overflow-core:$overflowVersion")
+    compileOnly("net.mamoe:mirai-console:2.16.0")
+    compileOnly("net.mamoe:mirai-core:2.16.0")
+    implementation("com.google.code.gson:gson:2.9.0")
     implementation("it.unimi.dsi:fastutil-core:8.5.4")
     implementation("net.fabricmc:mapping-io:0.1.8")
     implementation("io.github.murzagalin:multiplatform-expressions-evaluator:0.15.0")
+}
+
+tasks.withType<ShadowJar>(){
+    this.exclude("/kotlin*", "/net/mamoe/*")
 }
 
 task("generateProperties") {

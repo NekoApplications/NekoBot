@@ -1,27 +1,46 @@
 package icu.takeneko.nekobot.message
 
-import kotlinx.serialization.Serializable
+import net.mamoe.mirai.contact.Group
+import net.mamoe.mirai.contact.User
+import net.mamoe.mirai.message.data.MessageChain
+import net.mamoe.mirai.message.data.MessageChainBuilder
 
-@Serializable
-data class Message(val scene: String, val messageType: MessageType, val messagePlain: String, val status:Boolean = true, val forward:Boolean = false)
+
+data class Message(
+    val platformMessage: MessageChain,
+    val group: Group?,
+    val source: User,
+    val messageType: MessageType
+) {
+    val messagePlain: String
+        get() = platformMessage.contentToString()
+
+    fun describeSender() = source.id.toString()
+}
 
 enum class MessageType {
     GROUP, PRIVATE
 }
 
-class MessageResponse(val scene: String, val messageType: MessageType) {
-    val messageText = StringBuilder()
+class MessageResponse(val source: Message) {
+    private val builder = MessageChainBuilder()
 
-    operator fun String.unaryPlus(){
-        messageText.append(this + "\n")
+    operator fun String.unaryPlus() {
+        builder.add(this + "\n")
     }
 
-    fun append(string: String){
-        messageText.append(string)
+    fun append(string: String) {
+        builder.add(string)
     }
-    fun toMessage(status: Boolean = true, forward: Boolean = false) = Message(scene, messageType, messageText.toString(), status, forward)
+
+    fun asMessageChain() = builder.asMessageChain()
+
+    operator fun invoke(fn: MessageResponse.() -> Unit): MessageResponse {
+        fn(this)
+        return this
+    }
 }
 
-fun MessageResponse(scene: String, messageType: MessageType, fn: MessageResponse.() -> Unit):MessageResponse {
-    return MessageResponse(scene, messageType).apply(fn)
+fun MessageResponse(src: Message, fn: MessageResponse.() -> Unit): MessageResponse {
+    return MessageResponse(src).apply(fn)
 }
