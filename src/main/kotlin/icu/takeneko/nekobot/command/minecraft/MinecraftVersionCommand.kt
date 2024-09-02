@@ -14,7 +14,7 @@ class MinecraftVersionCommand : Command() {
     override val helpMessage: String
         get() = "!mv Optional[<version> | latest | latestStable]"
 
-    override fun handle(commandMessage: CommandMessage): MessageResponse? {
+    override fun handle(commandMessage: CommandMessage): MessageResponse {
         return commandMessage.createResponse {
             +"**Minecraft Version**"
             +""

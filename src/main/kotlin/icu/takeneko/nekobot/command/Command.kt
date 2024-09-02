@@ -12,7 +12,7 @@ abstract class Command {
 
 }
 
-class CommandMessage(private val message: Message) {
+class CommandMessage(val message: Message) {
     private val component = message.messagePlain.split(" ")
     val args = component.subList(1, component.size)
     val commandPrefix = component[0]

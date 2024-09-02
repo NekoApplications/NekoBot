@@ -11,7 +11,7 @@ class VersionCacheCommand : Command() {
         get() = "!vc"
 
     override val helpMessage: String
-        get() = "!vc [p | {[a | add] [<version> | latest | latestStable]}]"
+        get() = "!vc [p | {[a | add}] [<version> | latest | latestStable]}]"
 
     override fun handle(commandMessage: CommandMessage): MessageResponse? {
         return commandMessage.createResponse {

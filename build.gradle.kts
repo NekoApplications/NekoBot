@@ -52,6 +52,8 @@ dependencies {
     implementation("it.unimi.dsi:fastutil-core:8.5.4")
     implementation("net.fabricmc:mapping-io:0.1.8")
     implementation("io.github.murzagalin:multiplatform-expressions-evaluator:0.15.0")
+    // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-serialization-json-jvm
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.5.0")
 }
 
 tasks.withType<ShadowJar>(){

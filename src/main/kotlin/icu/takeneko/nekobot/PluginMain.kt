@@ -65,6 +65,7 @@ object PluginMain : KotlinPlugin(
             register(VersionCacheCommand())
             register(MinecraftVersionCommand())
             register(CalculatorCommand())
+            register(TranslateCrashReportCommand())
         }
         logger.info("Command Registered: ${CommandManager.commandPrefixes.joinToString(", ")}")
         val eventChannel = GlobalEventChannel.parentScope(this)
