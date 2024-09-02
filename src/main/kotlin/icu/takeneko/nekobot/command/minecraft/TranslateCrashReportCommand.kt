@@ -4,6 +4,7 @@ import icu.takeneko.nekobot.crashreport.CrashReportTranslator
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
 import icu.takeneko.nekobot.message.MessageResponse
+import icu.takeneko.nekobot.message.MessageType
 import icu.takeneko.nekobot.util.MCLogsAccess
 
 class TranslateCrashReportCommand : Command() {
@@ -21,7 +22,7 @@ class TranslateCrashReportCommand : Command() {
                 +"*Recent Translate Jobs (${CrashReportTranslator.jobs.size})*"
                 +""
                 CrashReportTranslator.jobs.filter {
-                    if (commandMessage.message.group == null)
+                    if (commandMessage.from == MessageType.PRIVATE)
                         it.source.message.source == commandMessage.message.source
                     else
                         it.source.message.group == commandMessage.message.group
@@ -42,6 +43,5 @@ class TranslateCrashReportCommand : Command() {
                 +(e.message ?: e.toString())
             }
         }
-
     }
 }
