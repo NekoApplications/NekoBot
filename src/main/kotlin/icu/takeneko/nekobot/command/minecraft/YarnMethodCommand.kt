@@ -2,7 +2,6 @@ package icu.takeneko.nekobot.command.minecraft
 
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
-import icu.takeneko.nekobot.message.Message
 import icu.takeneko.nekobot.message.MessageResponse
 
 class YarnMethodCommand : Command() {
@@ -24,11 +23,11 @@ class YarnMethodCommand : Command() {
                 return@createResponse
             }
             val data = mappingRepository.getMappingData(version)
-            val className = commandMessage[0] ?: run {
+            val methodName = commandMessage[0] ?: run {
                 +"Expected Method Name"
                 return@createResponse
             }
-            val results = data.findMethods(className, data.resolveNamespaces(namespaces, false))
+            val results = data.findMethods(methodName, data.resolveNamespaces(namespaces, false))
             if (results.isEmpty()) {
                 +"no matches for the given method name, MC version and query namespace"
                 return@createResponse

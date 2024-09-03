@@ -9,8 +9,8 @@ object CrashReportTranslator {
     val jobs = mutableListOf<CrashReportTranslationJob>()
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun submit(source:CommandMessage, content:String):CrashReportTranslationJob {
-        return CrashReportTranslationJob(source, content).also{
+    fun submit(source:CommandMessage, version:String, content:String):CrashReportTranslationJob {
+        return CrashReportTranslationJob(source, version, content).also{
             jobs.add(it)
             GlobalScope.launch {
                 it.run()

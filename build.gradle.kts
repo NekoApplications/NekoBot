@@ -48,16 +48,22 @@ dependencies {
     //testConsoleRuntime("top.mrxiaom:overflow-core:$overflowVersion")
     compileOnly("net.mamoe:mirai-console:2.16.0")
     compileOnly("net.mamoe:mirai-core:2.16.0")
+
+    implementation("ch.qos.logback:logback-core:1.2.11")
+    implementation("org.slf4j:slf4j-api:1.7.36")
+    implementation("ch.qos.logback:logback-classic:1.2.11")
+
     implementation("com.google.code.gson:gson:2.9.0")
     implementation("it.unimi.dsi:fastutil-core:8.5.4")
     implementation("net.fabricmc:mapping-io:0.1.8")
     implementation("io.github.murzagalin:multiplatform-expressions-evaluator:0.15.0")
     // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-serialization-json-jvm
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC.2")
 }
 
-tasks.withType<ShadowJar>(){
-    this.exclude("/kotlin*", "/net/mamoe/*")
+tasks.withType<ShadowJar>{
+    this.exclude("/kotlin*", "/net/mamoe/*", "/org/slf4j*", "/ch/qos*")
 }
 
 task("generateProperties") {

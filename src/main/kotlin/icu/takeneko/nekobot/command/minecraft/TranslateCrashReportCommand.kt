@@ -10,22 +10,24 @@ import icu.takeneko.nekobot.util.MCLogsAccess
 class TranslateCrashReportCommand : Command() {
 
     override val helpMessage: String
-        get() = "!tr [{<ReportId> | <ReportUrl>} | p]\n" +
-            "- Use `!tr <ReportUrl>` to translate your crashreport\n" +
+        get() = "!tr [{<ReportId> | <ReportUrl>} | p] Optional[<version> | latest | latestStable]\n" +
+            "- Use `!tr <ReportUrl> <Version>` to translate your crashreport\n" +
             "- `<ReportUrl>` indicates a url you got after uploading a crash report into https://mclo.gs\n" +
+            "- `<Version>` indicates a minecraft version, specify a minecraft version is optional"+
             "- `!tr p` shows recent crashreport translation progress"
 
     override fun handle(commandMessage: CommandMessage): MessageResponse? {
         val arg = commandMessage[1] ?: return null
+        val version = commandMessage[2] ?: "latest"
         if (arg == "p") {
             return commandMessage.createResponse {
                 +"*Recent Translate Jobs (${CrashReportTranslator.jobs.size})*"
                 +""
                 CrashReportTranslator.jobs.filter {
                     if (commandMessage.from == MessageType.PRIVATE)
-                        it.source.message.source == commandMessage.message.source
+                        it.source?.message?.source == commandMessage.message.source
                     else
-                        it.source.message.group == commandMessage.message.group
+                        it.source?.message?.group == commandMessage.message.group
                 }.forEach {
                     +it.describe()
                 }
@@ -34,7 +36,7 @@ class TranslateCrashReportCommand : Command() {
         val id = if (arg.startsWith("")) arg.removePrefix("https://mclo.gs/") else arg
         try {
             val content = MCLogsAccess.getLogContentById(id)
-            val job = CrashReportTranslator.submit(commandMessage, content)
+            val job = CrashReportTranslator.submit(commandMessage, version, content)
             return commandMessage.createResponse {
                 +"Submitted translation job $job. "
             }

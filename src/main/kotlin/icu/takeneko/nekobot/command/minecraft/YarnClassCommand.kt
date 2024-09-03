@@ -8,7 +8,7 @@ import icu.takeneko.nekobot.message.MessageResponse
 class YarnClassCommand : Command() {
     override val commandPrefix: String = "!yc"
     override val helpMessage: String = "!yc <className> Optional[<version> | latest | latestStable]"
-    override fun handle(commandMessage: CommandMessage): MessageResponse? {
+    override fun handle(commandMessage: CommandMessage): MessageResponse {
         return commandMessage.createResponse() {
             if (commandMessage.args.isEmpty()){
                 + helpMessage
