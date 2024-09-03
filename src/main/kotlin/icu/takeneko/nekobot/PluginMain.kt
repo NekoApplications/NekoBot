@@ -88,6 +88,5 @@ object PluginMain : KotlinPlugin(
 
     override fun onDisable() {
         super.onDisable()
-
     }
 }
