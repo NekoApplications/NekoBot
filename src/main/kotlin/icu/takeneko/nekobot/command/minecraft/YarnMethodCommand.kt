@@ -65,7 +65,7 @@ class YarnMethodCommand : Command() {
                     result.getDesc("yarn")?: continue
                 )
                 +"**Access Transformer**"
-                +"public ${result.owner.getNameOrElse("mcp", "mojmap")} ${
+                +"public ${result.owner.getNameOrElse("mcp", "mojmap")?.replace("/", ".")} ${
                     result.getNameOrElse(
                         "mcp",
                         "mojmap"

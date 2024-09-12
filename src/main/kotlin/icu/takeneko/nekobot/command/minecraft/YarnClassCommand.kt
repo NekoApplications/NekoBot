@@ -39,7 +39,7 @@ class YarnClassCommand : Command() {
                 }
                 +""
                 + "**Yarn Access Widener**: accessible\tclass\t${result.getName("yarn")}"
-                + "**Access Transformer**: public ${result.getNameOrElse("mcp", "mojmap")}"
+                + "**Access Transformer**: public ${result.getNameOrElse("mcp", "mojmap")?.replace("/", ".")}"
             }
             +"query ns: ${namespaces.joinToString(",")}"
         }

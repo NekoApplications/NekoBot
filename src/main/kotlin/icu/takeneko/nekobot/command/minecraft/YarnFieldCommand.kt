@@ -64,7 +64,7 @@ class YarnFieldCommand : Command() {
                     result.getDesc("yarn") ?: continue
                 )
                 +"**Access Transformer**"
-                +"public-f ${result.owner.getNameOrElse("mcp", "mojmap")} ${result.getNameOrElse("mcp", "mojmap")}"
+                +"public-f ${result.owner.getNameOrElse("mcp", "mojmap")} ${result.getNameOrElse("mcp", "mojmap")?.replace("/", ".")}"
             }
             +"query ns: ${namespaces.joinToString(",")}"
         }
