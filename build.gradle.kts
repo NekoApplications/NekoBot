@@ -1,5 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 import java.io.ByteArrayOutputStream
 
@@ -14,7 +13,7 @@ plugins {
 }
 
 group = "icu.takeneko"
-version = "0.0.1"
+version = "1.1.3"
 
 repositories {
     mavenCentral()

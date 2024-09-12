@@ -9,6 +9,9 @@ import icu.takeneko.nekobot.util.MCLogsAccess
 
 class TranslateCrashReportCommand : Command() {
 
+    override val commandPrefix: String
+        get() = "!tr"
+
     override val helpMessage: String
         get() = "!tr [{<ReportId> | <ReportUrl>} | p] Optional[<version> | latest | latestStable]\n" +
             "- Use `!tr <ReportUrl> <Version>` to translate your crashreport\n" +
@@ -17,23 +20,24 @@ class TranslateCrashReportCommand : Command() {
             "- `!tr p` shows recent crashreport translation progress"
 
     override fun handle(commandMessage: CommandMessage): MessageResponse? {
-        val arg = commandMessage[1] ?: return null
-        val version = commandMessage[2] ?: "latest"
+        val arg = commandMessage[0] ?: return null
+        val version = commandMessage[1] ?: "latest"
         if (arg == "p") {
             return commandMessage.createResponse {
-                +"*Recent Translate Jobs (${CrashReportTranslator.jobs.size})*"
-                +""
-                CrashReportTranslator.jobs.filter {
+                val jobs = CrashReportTranslator.jobs.filter {
                     if (commandMessage.from == MessageType.PRIVATE)
                         it.source?.message?.source == commandMessage.message.source
                     else
                         it.source?.message?.group == commandMessage.message.group
-                }.forEach {
+                }
+                +"**Recent Translate Jobs (${jobs.size})**"
+                +""
+                jobs.forEach {
                     +it.describe()
                 }
             }
         }
-        val id = if (arg.startsWith("")) arg.removePrefix("https://mclo.gs/") else arg
+        val id = if (arg.startsWith("https://mclo.gs/")) arg.removePrefix("https://mclo.gs/") else arg
         try {
             val content = MCLogsAccess.getLogContentById(id)
             val job = CrashReportTranslator.submit(commandMessage, version, content)

@@ -7,7 +7,7 @@ import icu.takeneko.nekobot.command.minecraft.versionRepository
 import icu.takeneko.nekobot.message.MessageResponse
 import icu.takeneko.nekobot.message.MessageType
 import icu.takeneko.nekobot.util.MCLogsAccess
-import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import java.util.regex.Pattern
 import kotlin.io.path.Path
 import kotlin.io.path.readText
@@ -17,13 +17,14 @@ class CrashReportTranslationJob(
     private val version: String,
     private val content: String
 ) {
-    private val symbolPattern = Pattern.compile("at ()((([a-zA-Z0-9\$_]+)\\.)+)([a-zA-Z0-9\$_]+)").toRegex()
-    private val modLoaderPattern = Pattern.compile("Is Modded: Definitely; Client brand changed to '(.+)'").toRegex()
+    private val logger = LoggerFactory.getLogger("CrashReportTranslationJob-${toString()}")
+    private val symbolPattern = Pattern.compile("at ((([a-zA-Z0-9\$_]+)\\.)+)([<>a-zA-Z0-9\$_]+)").toRegex()
+    private val modLoaderPattern = Pattern.compile("Is Modded: Definitely; (Client|Server) brand changed to '(.+)'").toRegex()
     fun describe(): String {
         return "${toString()} ${source?.message?.source?.nick ?: ""} ${stage.formatter(this)}"
     }
 
-    var stage = TranslationStage.DETERMINE_SYMBOL
+    private var stage = TranslationStage.DETERMINE_SYMBOL
     val classSymbols = mutableMapOf<String, String>()
     val methodSymbols = mutableSetOf<Pair<String, String>>()
     val translatedClassSymbols = mutableMapOf<String, String>()
@@ -36,17 +37,19 @@ class CrashReportTranslationJob(
     }
 
     private fun determineNamespace(): String {
+        if (content.contains("Fabric Mods"))return "yarn"
         val match = modLoaderPattern.find(content) ?: return "mojmap"
-        val modLoader = (match.groups[1] ?: return "mojmap").value
+        val modLoader = (match.groups[2] ?: return "mojmap").value
         return if (modLoader.contains("fabric")) "yarn" else "mojmap"
     }
 
-    suspend fun CommandMessage.respond(fn: MessageResponse.() -> Unit){
+    suspend fun CommandMessage.respond(fn: MessageResponse.() -> Unit) {
         val ret = createResponse(fn)
-        when(this.from){
+        when (this.from) {
             MessageType.GROUP -> {
                 ret.source.group!!.sendMessage(ret.asMessageChain())
             }
+
             MessageType.PRIVATE -> {
                 ret.source.source.sendMessage(ret.asMessageChain())
             }
@@ -66,6 +69,8 @@ class CrashReportTranslationJob(
                 methodSymbols += classNamePath to methodName.value
                 match = match.next()
             }
+            logger.info("Found ${methodSymbols.size} methods.")
+            logger.info("Found ${classSymbols.size} classes.")
             this.stage = TranslationStage.TRANSLATING
             val version = versionRepository.resolve(version)
             if (version == null) {
@@ -77,7 +82,9 @@ class CrashReportTranslationJob(
                 }
                 return
             }
+
             val targetNamespace = determineNamespace()
+            logger.info("Determined namespace $targetNamespace")
             val mappingData = mappingRepository.getMappingData(version)
             for (entry in classSymbols) {
                 val (classFullName, className) = entry
@@ -96,6 +103,7 @@ class CrashReportTranslationJob(
                     translatedClassSymbols[classFullName] = trResult
                 }
             }
+            logger.info("Translated ${translatedClassSymbols.size} classes.")
             for ((ownerClass, methodName) in methodSymbols) {
                 val results = mappingData.findMethods(methodName, mappingData.resolveNamespaces(namespaces, false))
                 val matchResult = results.find {
@@ -120,6 +128,7 @@ class CrashReportTranslationJob(
                     translatedMethodSymbols[methodName] = trResult
                 }
             }
+            logger.info("Translated ${translatedMethodSymbols.size} methods.")
             val classReplacement = mutableMapOf<String, String>()
             var newContent = content
             translatedClassSymbols.forEach { (t, u) ->
@@ -133,14 +142,16 @@ class CrashReportTranslationJob(
             }
             this.translatedContent = newContent
             println(newContent)
-
+            stage = TranslationStage.UPLOADING
             mcLogsId = MCLogsAccess.updateLogContent(newContent)
+            logger.info("Uploaded translated crash report to https://mclo.gs/$mcLogsId")
             source?.run {
                 this.respond {
-                    +"Translation job ${toString()} from ${this.source.source.nick} finished."
+                    +"Translation job ${this@CrashReportTranslationJob} from ${this.source.source.nick} finished."
                     +"Translated crash report has been uploaded to https://mclo.gs/$mcLogsId"
                 }
             }
+            stage = TranslationStage.DONE
         } catch (e: Exception) {
             e.printStackTrace()
             source?.run {
@@ -152,11 +163,16 @@ class CrashReportTranslationJob(
         }
     }
 }
+private val modLoaderPattern = Pattern.compile("Is Modded: Definitely; (Client|Server) brand changed to '(.+)'").toRegex()
+
+fun determineNamespace(content: String): String {
+    if (content.contains("Fabric Mods"))return "yarn"
+    val match = modLoaderPattern.find(content) ?: return "mojmap"
+    println(match)
+    val modLoader = (match.groups[2] ?: return "mojmap").value
+    return if (modLoader.contains("fabric")) "yarn" else "mojmap"
+}
 
 fun main() {
-
-    val job = CrashReportTranslationJob(null, "1.19.2", Path("crash-2024-09-02_05.08.11-server.txt").readText())
-    runBlocking {
-        job.run()
-    }
+    println(determineNamespace(Path("crash-2023-09-24_23.11.03-server.txt").readText()))
 }

@@ -2,8 +2,9 @@ package icu.takeneko.nekobot.command.minecraft
 
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
-import icu.takeneko.nekobot.message.Message
 import icu.takeneko.nekobot.message.MessageResponse
+import icu.takeneko.nekobot.util.getDescOrElse
+import icu.takeneko.nekobot.util.getNameOrElse
 
 class YarnFieldCommand : Command() {
     override val commandPrefix: String
@@ -12,7 +13,7 @@ class YarnFieldCommand : Command() {
     override val helpMessage: String
         get() = "!yf <fieldName> Optional[<version> | latest | latestStable]"
 
-    override fun handle(commandMessage: CommandMessage): MessageResponse? {
+    override fun handle(commandMessage: CommandMessage): MessageResponse {
         return commandMessage.createResponse() {
             if (commandMessage.args.isEmpty()) {
                 +helpMessage
@@ -62,7 +63,8 @@ class YarnFieldCommand : Command() {
                     result.getName("yarn") ?: continue,
                     result.getDesc("yarn") ?: continue
                 )
-
+                +"**Access Transformer**"
+                +"public-f ${result.owner.getNameOrElse("mcp", "mojmap")} ${result.getNameOrElse("mcp", "mojmap")}"
             }
             +"query ns: ${namespaces.joinToString(",")}"
         }

@@ -32,7 +32,6 @@ object MCLogsAccess {
 
     fun updateLogContent(content: String): String {
         val encoded = "content=${URLEncoder.encode(content, StandardCharsets.UTF_8)}"
-        println(encoded)
         val request = HttpRequest.newBuilder().POST(
             BodyPublishers.ofString(
                 encoded
@@ -40,7 +39,6 @@ object MCLogsAccess {
         ).uri(URI("https://api.mclo.gs/1/log")).header("Content-Type", "application/x-www-form-urlencoded")
         val response = httpClient.send(request.build(), BodyHandlers.ofString())
         val result = json.decodeFromString<LogPasteResult>(response.body())
-        println(response.body())
         if (!result.success) {
             throw IllegalArgumentException(result.error)
         }

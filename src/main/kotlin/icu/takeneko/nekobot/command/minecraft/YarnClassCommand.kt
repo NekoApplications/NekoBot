@@ -4,6 +4,7 @@ import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
 import icu.takeneko.nekobot.message.Message
 import icu.takeneko.nekobot.message.MessageResponse
+import icu.takeneko.nekobot.util.getNameOrElse
 
 class YarnClassCommand : Command() {
     override val commandPrefix: String = "!yc"
@@ -38,6 +39,7 @@ class YarnClassCommand : Command() {
                 }
                 +""
                 + "**Yarn Access Widener**: accessible\tclass\t${result.getName("yarn")}"
+                + "**Access Transformer**: public ${result.getNameOrElse("mcp", "mojmap")}"
             }
             +"query ns: ${namespaces.joinToString(",")}"
         }
