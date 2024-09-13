@@ -1,26 +1,40 @@
 package icu.takeneko.nekobot.mcversion
 
-import com.google.gson.annotations.SerializedName
-import icu.takeneko.nekobot.util.gson
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse.BodyHandlers
+import icu.takeneko.nekobot.util.configureProxyIfPossible
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 
 object MinecraftVersion {
-
     private val mojangApiUrl = "https://piston-meta.mojang.com/"
     private val versionManifestUrl = "$mojangApiUrl/mc/game/version_manifest.json"
     private lateinit var versionManifest: VersionManifest
-    private val httpClient = HttpClient.newHttpClient()
     lateinit var latestStableVersion: String
     lateinit var latestVersion: String
     val versions = mutableMapOf<String, VersionData>()
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
+
+    private val client = HttpClient(CIO) {
+        install(ContentNegotiation){
+            json(json = json)
+        }
+        engine{
+            configureProxyIfPossible()
+        }
+    }
+
     fun update() {
-        val request = HttpRequest.newBuilder().GET().uri(URI(versionManifestUrl)).build()
-        httpClient.sendAsync(request, BodyHandlers.ofString()).thenAccept {
-            val resp = it.body()
-            versionManifest = gson.fromJson(resp, VersionManifest::class.java)
+        runBlocking {
+            val response = client.get(versionManifestUrl)
+            versionManifest = response.body<VersionManifest>()
             versions.clear()
             versions += versionManifest.versions.map { v -> v.id to v }
             latestStableVersion = versionManifest.latest.release
@@ -32,20 +46,27 @@ object MinecraftVersion {
         return versions[minecraftVersion]
     }
 }
-
+@kotlinx.serialization.Serializable
 data class LatestData(val release: String, val snapshot: String)
+
+@kotlinx.serialization.Serializable
+@Suppress("UNUSED")
 enum class VersionType {
-    @SerializedName("snapshot")
+    @kotlinx.serialization.SerialName("snapshot")
     SNAPSHOT,
 
-    @SerializedName("release")
+    @kotlinx.serialization.SerialName("release")
     RELEASE,
 
-    @SerializedName("old_alpha")
+    @kotlinx.serialization.SerialName("old_alpha")
     OLD_ALPHA,
+
+    @kotlinx.serialization.SerialName("old_beta")
+    OLD_BETA,
 
 }
 
+@kotlinx.serialization.Serializable
 data class VersionData(
     val id: String,
     val type: VersionType,
@@ -54,4 +75,5 @@ data class VersionData(
     val time: String
 )
 
+@kotlinx.serialization.Serializable
 data class VersionManifest(val latest: LatestData, val versions: MutableList<VersionData>)

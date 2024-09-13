@@ -1,8 +1,11 @@
 package icu.takeneko.nekobot.util
 
 import com.google.gson.GsonBuilder
+import io.ktor.client.engine.*
 import net.fabricmc.mappingio.tree.MappingTree.ElementMapping
 import net.fabricmc.mappingio.tree.MappingTree.MemberMapping
+import java.net.InetSocketAddress
+import java.net.Proxy
 import java.util.*
 
 val gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()
@@ -21,4 +24,16 @@ fun ElementMapping.getNameOrElse(ns1:String, ns2:String): String? {
 
 fun MemberMapping.getDescOrElse(ns1:String, ns2:String): String? {
     return getDesc(ns1) ?: getDesc(ns2)
+}
+
+fun HttpClientEngineConfig.configureProxyIfPossible(){
+    if (System.getProperty("http.proxyHost") != null) {
+        proxy = Proxy(
+            Proxy.Type.HTTP,
+            InetSocketAddress(
+                System.getProperty("http.proxyHost"),
+                System.getProperty("http.proxyPort").toInt()
+            )
+        )
+    }
 }

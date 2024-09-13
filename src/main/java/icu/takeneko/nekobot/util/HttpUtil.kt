@@ -13,74 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package icu.takeneko.nekobot.util
 
-package icu.takeneko.nekobot.util;
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.utils.io.core.*
+import kotlinx.coroutines.runBlocking
+import org.slf4j.Logger
+import java.net.ConnectException
+import java.net.URI
+import java.net.http.HttpTimeoutException
+import java.time.Duration
 
 
-import org.slf4j.Logger;
+object HttpUtil {
+    private val timeout: Duration = Duration.ofSeconds(20)
+    private val client = HttpClient(CIO) {
+        install(ContentNegotiation)
+        engine {
+            configureProxyIfPossible()
+        }
+    }
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.ConnectException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.net.http.HttpTimeoutException;
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Map;
+    @JvmStatic
+    fun toUri(host: String, path: String): URI {
+        return toUri(host, path, null)
+    }
 
-public final class HttpUtil {
-	private static final Duration timeout = Duration.ofSeconds(20);
-	private static final HttpClient client = HttpClient.newBuilder()
-			.followRedirects(Redirect.NORMAL)
-			.connectTimeout(timeout)
-			.build();
+    @JvmStatic
+    fun toUri(host: String, path: String, query: String?): URI {
+        return URI("https", null, host, -1, path, query, null)
+    }
 
-	public static URI toUri(String host, String path) throws URISyntaxException {
-		return toUri(host, path, null);
-	}
+    @JvmStatic
+    fun makeRequest(uri: URI): HttpResponse {
+        return runBlocking {
+            val resp = client.get(uri.toURL())
+            val packet = resp.body<ByteReadPacket>()
+            return@runBlocking HttpResponse(resp.status.value, packet.readBytes())
+        }
+    }
 
-	public static URI toUri(String host, String path, String query) throws URISyntaxException {
-		return new URI("https", null, host, -1, path, query, null);
-	}
-
-	public static HttpResponse<InputStream> makeRequest(URI uri) throws IOException, InterruptedException {
-		return makeRequest(uri, Collections.emptyMap());
-	}
-
-	public static HttpResponse<InputStream> makeRequest(URI uri, Map<String, String> headers) throws IOException, InterruptedException {
-		HttpRequest.Builder builder = HttpRequest.newBuilder(uri)
-				.timeout(timeout);
-
-		for (Map.Entry<String, String> entry : headers.entrySet()) {
-			builder.header(entry.getKey(), entry.getValue());
-		}
-
-		HttpRequest request = builder.build();
-
-		try {
-			return client.send(request, BodyHandlers.ofInputStream());
-		} catch (IOException e) {
-			// retry once
-			try {
-				return client.send(request, BodyHandlers.ofInputStream());
-			} catch (IOException f) { }
-
-			throw e;
-		}
-	}
-
-	public static void logError(String desc, Throwable exc, Logger logger) {
-		if (exc instanceof HttpTimeoutException
-				|| exc instanceof ConnectException) {
-			logger.warn("{}: {}", desc, exc.toString());
-		} else {
-			logger.warn("{}", desc, exc);
-		}
-	}
+    @JvmStatic
+    fun logError(desc: String?, exc: Throwable, logger: Logger) {
+        if (exc is HttpTimeoutException
+            || exc is ConnectException
+        ) {
+            logger.warn("{}: {}", desc, exc.toString())
+        } else {
+            logger.warn("{}", desc, exc)
+        }
+        exc.printStackTrace()
+    }
 }

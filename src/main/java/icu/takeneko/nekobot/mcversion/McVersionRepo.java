@@ -17,17 +17,13 @@
 package icu.takeneko.nekobot.mcversion;
 
 import com.google.gson.stream.JsonReader;
+import icu.takeneko.nekobot.util.HttpResponse;
 import icu.takeneko.nekobot.util.HttpUtil;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URISyntaxException;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,14 +59,13 @@ public final class McVersionRepo {
 
     private static boolean checkVersion(String version) {
         try {
-            HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri(metaHost, "/v2/versions/game"));
+            HttpResponse response = HttpUtil.makeRequest(HttpUtil.toUri(metaHost, "/v2/versions/game"));
 
             if (response.statusCode() != 200) {
-                response.body().close();
                 throw new IOException("request failed with code " + response.statusCode());
             }
 
-            try (JsonReader reader = new JsonReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8))) {
+            try (JsonReader reader = new JsonReader(response.reader())) {
                 reader.beginArray();
 
                 while (reader.hasNext()) {
@@ -87,7 +82,7 @@ public final class McVersionRepo {
                     reader.endObject();
                 }
             }
-        } catch (URISyntaxException | IOException | InterruptedException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
@@ -122,19 +117,18 @@ public final class McVersionRepo {
         }
     }
 
-    public void update() {
+    public boolean update() {
         try {
-            HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri(metaHost, "/v2/versions/game"));
+            HttpResponse response = HttpUtil.makeRequest(HttpUtil.toUri(metaHost, "/v2/versions/game"));
 
             if (response.statusCode() != 200) {
-                response.body().close();
                 throw new IOException("request failed with code " + response.statusCode());
             }
 
             String latest = null;
             String latestStable = null;
 
-            try (JsonReader reader = new JsonReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8))) {
+            try (JsonReader reader = new JsonReader(response.reader())) {
                 boolean detectedLatest = false;
 
                 reader.beginArray();
@@ -174,7 +168,7 @@ public final class McVersionRepo {
             if (latest == null || latestStable == null) {
                 throw new IOException("no mc version entries");
             } else if (latest.equals(this.latest) && latestStable.equals(this.latestStable)) {
-                return;
+                return true;
             }
 
             this.latest = latest;
@@ -187,8 +181,11 @@ public final class McVersionRepo {
             for (McVersionUpdateHandler handler : updateHandlers) {
                 handler.onMcVersionUpdate(latest, latestStable);
             }
+            return true;
         } catch (Throwable t) {
             HttpUtil.logError("mc version retrieval failed", t, LOGGER);
+            t.printStackTrace();
+            return false;
         }
     }
 

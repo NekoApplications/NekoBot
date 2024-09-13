@@ -17,6 +17,7 @@
 package icu.takeneko.nekobot.mapping;
 
 import com.google.gson.stream.JsonReader;
+import icu.takeneko.nekobot.util.HttpResponse;
 import icu.takeneko.nekobot.util.HttpUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.mappingio.MappedElementKind;
@@ -46,7 +47,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -96,25 +96,25 @@ public final class MappingRepository {
     private static @Nullable String getMavenId(String mcVersion, String kind) throws IOException, InterruptedException, URISyntaxException {
         if (mcVersion.indexOf('/') >= 0) throw new IllegalArgumentException("invalid mc version: " + mcVersion);
 
-        HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri(metaHost, "/v2/versions/%s/%s".formatted(kind, mcVersion), "limit=1"));
+        HttpResponse response = HttpUtil.makeRequest(HttpUtil.toUri(metaHost, "/v2/versions/%s/%s".formatted(kind, mcVersion), "limit=1"));
 
         if (response.statusCode() != 200) {
-            response.body().close();
             throw new IOException("request failed with code " + response.statusCode());
         }
 
         String mavenId = null;
 
-        try (JsonReader reader = new JsonReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8))) {
+        try (JsonReader reader = new JsonReader(response.reader())) {
             reader.beginArray();
 
             if (reader.hasNext()) {
                 reader.beginObject();
 
                 while (reader.hasNext()) {
-                    switch (reader.nextName()) {
-                        case "maven" -> mavenId = reader.nextString();
-                        default -> reader.skipValue();
+                    if (reader.nextName().equals("maven")) {
+                        mavenId = reader.nextString();
+                    } else {
+                        reader.skipValue();
                     }
                 }
 
@@ -172,14 +172,13 @@ public final class MappingRepository {
 
     private static boolean retrieveYarnMappings(String yarnMavenId, String classifier, boolean isTinyV2, MappingVisitor visitor) throws URISyntaxException, InterruptedException {
         try {
-            HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri(mavenHost, getMavenPath(yarnMavenId, classifier, "jar")));
+            HttpResponse response = HttpUtil.makeRequest(HttpUtil.toUri(mavenHost, getMavenPath(yarnMavenId, classifier, "jar")));
 
             if (response.statusCode() != 200) {
-                response.body().close();
                 return false;
             }
 
-            try (ZipInputStream zis = new ZipInputStream(response.body())) {
+            try (ZipInputStream zis = new ZipInputStream(response.inputStream())) {
                 ZipEntry entry;
 
                 while ((entry = zis.getNextEntry()) != null) {
@@ -234,14 +233,13 @@ public final class MappingRepository {
         URI mappingsUrl = null;
 
         try {
-            HttpResponse<InputStream> response = HttpUtil.makeRequest(jsonUrl);
+            HttpResponse response = HttpUtil.makeRequest(jsonUrl);
 
             if (response.statusCode() != 200) {
-                response.body().close();
                 return false;
             }
 
-            try (JsonReader reader = new JsonReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8))) {
+            try (JsonReader reader = new JsonReader(response.reader())) {
                 reader.beginObject();
 
                 while (reader.hasNext()) {
@@ -287,15 +285,14 @@ public final class MappingRepository {
         }
 
         try {
-            HttpResponse<InputStream> response = HttpUtil.makeRequest(mappingsUrl);
+            HttpResponse response = HttpUtil.makeRequest(mappingsUrl);
 
             if (response.statusCode() != 200) {
-                response.body().close();
                 return false;
             }
 
             Files.createDirectories(out.toAbsolutePath().getParent());
-            Files.copy(response.body(), out, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(response.inputStream(), out, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             HttpUtil.logError("fetching/saving mc mappings %s failed".formatted(mappingsUrl), e, LOGGER);
             return false;
@@ -306,16 +303,15 @@ public final class MappingRepository {
 
     private static URI queryVersionJsonUrl(String mcVersion, String host, String path) throws InterruptedException, URISyntaxException {
         try {
-            HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri(host, path));
+            HttpResponse response = HttpUtil.makeRequest(HttpUtil.toUri(host, path));
 
             if (response.statusCode() != 200) {
-                response.body().close();
                 return null;
             }
 
             URI jsonUrl = null;
 
-            try (JsonReader reader = new JsonReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8))) {
+            try (JsonReader reader = new JsonReader(response.reader())) {
                 reader.beginObject();
 
                 while (reader.hasNext()) {
@@ -387,11 +383,9 @@ public final class MappingRepository {
 
     private static boolean downloadSrgMappings(String mcVersion, Path out) throws URISyntaxException, IOException, InterruptedException {
         try {
-            HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri("maven.minecraftforge.net", getMavenPath("de.oceanlabs.mcp:mcp_config:%s".formatted(mcVersion), null, "zip")));
+            HttpResponse response = HttpUtil.makeRequest(HttpUtil.toUri("maven.minecraftforge.net", getMavenPath("de.oceanlabs.mcp:mcp_config:%s".formatted(mcVersion), null, "zip")));
 
             if (response.statusCode() != 200) {
-                response.body().close();
-
                 if (response.statusCode() == 404) {
                     Files.deleteIfExists(out);
                     Files.createFile(out);
@@ -401,7 +395,7 @@ public final class MappingRepository {
                 }
             }
 
-            try (ZipInputStream zis = new ZipInputStream(response.body())) {
+            try (ZipInputStream zis = new ZipInputStream(response.inputStream())) {
                 ZipEntry entry;
 
                 while ((entry = zis.getNextEntry()) != null) {
@@ -439,14 +433,13 @@ public final class MappingRepository {
         String mcpVersionFuzzy = null;
 
         try {
-            HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri("maven.minecraftforge.net", "/de/oceanlabs/mcp/mcp_snapshot/maven-metadata.xml"));
+            HttpResponse response = HttpUtil.makeRequest(HttpUtil.toUri("maven.minecraftforge.net", "/de/oceanlabs/mcp/mcp_snapshot/maven-metadata.xml"));
 
             if (response.statusCode() != 200) {
-                response.body().close();
                 return null;
             }
 
-            try (InputStream is = response.body()) {
+            try (InputStream is = response.inputStream()) {
                 Element element = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is).getDocumentElement();
                 element = (Element) element.getElementsByTagName("versioning").item(0);
                 element = (Element) element.getElementsByTagName("versions").item(0);
@@ -574,14 +567,13 @@ public final class MappingRepository {
 
     private static boolean downloadMcpMappings(String mcpVersion, Path out) throws URISyntaxException, InterruptedException {
         try {
-            HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri("maven.minecraftforge.net", getMavenPath("de.oceanlabs.mcp:mcp_snapshot:%s".formatted(mcpVersion), null, "zip")));
+            HttpResponse response = HttpUtil.makeRequest(HttpUtil.toUri("maven.minecraftforge.net", getMavenPath("de.oceanlabs.mcp:mcp_snapshot:%s".formatted(mcpVersion), null, "zip")));
 
             if (response.statusCode() != 200) {
-                response.body().close();
                 return false;
             }
 
-            try (InputStream is = response.body()) {
+            try (InputStream is = response.inputStream()) {
                 Files.createDirectories(out.toAbsolutePath().getParent());
                 Files.copy(is, out);
             }
@@ -597,15 +589,14 @@ public final class MappingRepository {
         String id = getYarnJavadocDir(yarnMavenId);
 
         try {
-            HttpResponse<InputStream> response = HttpUtil.makeRequest(HttpUtil.toUri(mavenHost, "/jdlist.txt"));
+            HttpResponse response = HttpUtil.makeRequest(HttpUtil.toUri(mavenHost, "/jdlist.txt"));
 
             if (response.statusCode() != 200) {
                 LOGGER.warn("Yarn jdlist.txt request failed: {}", response.statusCode());
-                response.body().close();
                 return false;
             }
 
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8))) {
+            try (BufferedReader reader = new BufferedReader(response.reader())) {
                 String line;
 
                 while ((line = reader.readLine()) != null) {

@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "icu.takeneko"
-version = "1.1.4"
+version = "1.1.6"
 
 repositories {
     mavenCentral()
@@ -40,6 +40,8 @@ kotlin {
 //    }
 //}
 
+val ktor_version: String by project
+
 dependencies {
     val overflowVersion = "2.16.0-695e4e1-SNAPSHOT"
     compileOnly("org.slf4j:slf4j-api:1.7.36")
@@ -59,6 +61,11 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-serialization-json-jvm
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.5.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC.2")
+
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
 }
 
 tasks.withType<ShadowJar>{

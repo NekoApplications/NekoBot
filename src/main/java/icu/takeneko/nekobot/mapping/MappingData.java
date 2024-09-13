@@ -21,7 +21,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.mappingio.tree.MappingTree;
-import net.mamoe.mirai.utils.MiraiLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
