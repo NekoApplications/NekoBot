@@ -9,23 +9,19 @@ import icu.takeneko.nekobot.command.status.StatusCommand
 import icu.takeneko.nekobot.command.utility.CalculatorCommand
 import icu.takeneko.nekobot.config.loadConfig
 import icu.takeneko.nekobot.mcversion.MinecraftVersion
-import icu.takeneko.nekobot.message.Message
+import icu.takeneko.nekobot.message.CommandContext
 import icu.takeneko.nekobot.message.MessageType
 import icu.takeneko.nekobot.util.BuildProperties
 import kotlinx.coroutines.launch
-import net.mamoe.mirai.Mirai
-import net.mamoe.mirai.console.MiraiConsole
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.events.FriendMessageEvent
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import java.lang.management.ManagementFactory
-import java.lang.management.ThreadMXBean
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
-import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.system.exitProcess
@@ -85,23 +81,28 @@ object PluginMain : KotlinPlugin(
             eventChannel.subscribeAlways<GroupMessageEvent> {
                 launch {
                     val ret = CommandManager.run(
-                        Message(
+                        CommandContext(
                             message,
                             this@subscribeAlways.group,
                             this@subscribeAlways.sender,
                             MessageType.GROUP
                         )
                     ) ?: return@launch
-                    ret.source.group!!.sendMessage(ret.asMessageChain())
+                    ret.context.group!!.sendMessage(ret.create())
                 }
 
             }
             eventChannel.subscribeAlways<FriendMessageEvent> {
                 launch {
-                    val ret =
-                        CommandManager.run(Message(message, null, this@subscribeAlways.sender, MessageType.PRIVATE))
-                            ?: return@launch
-                    ret.source.source.sendMessage(ret.asMessageChain())
+                    val ret = CommandManager.run(
+                        CommandContext(
+                            message,
+                            null,
+                            this@subscribeAlways.sender,
+                            MessageType.PRIVATE
+                        )
+                    ) ?: return@launch
+                    ret.context.source.sendMessage(ret.create())
                 }
             }
             Unit

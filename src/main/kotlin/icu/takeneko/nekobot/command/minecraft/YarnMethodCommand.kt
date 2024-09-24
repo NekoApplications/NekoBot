@@ -2,7 +2,7 @@ package icu.takeneko.nekobot.command.minecraft
 
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
-import icu.takeneko.nekobot.message.MessageResponse
+import icu.takeneko.nekobot.message.MessageResponseCreationScope
 import icu.takeneko.nekobot.util.getDescOrElse
 import icu.takeneko.nekobot.util.getNameOrElse
 
@@ -14,7 +14,7 @@ class YarnMethodCommand : Command() {
     override val helpMessage: String
         get() = "!ym <methodName> Optional[<version> | latest | latestStable]"
 
-    override fun handle(commandMessage: CommandMessage): MessageResponse? {
+    override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         return commandMessage.createResponse {
             if (commandMessage.args.isEmpty()) {
                 +helpMessage

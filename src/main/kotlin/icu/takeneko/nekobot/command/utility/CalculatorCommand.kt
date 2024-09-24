@@ -6,7 +6,7 @@ import com.github.murzagalin.evaluator.Function
 import com.github.murzagalin.evaluator.OneNumberArgumentFunction
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
-import icu.takeneko.nekobot.message.MessageResponse
+import icu.takeneko.nekobot.message.MessageResponseCreationScope
 import java.security.SecureRandom
 
 class CalculatorCommand : Command() {
@@ -32,7 +32,7 @@ class CalculatorCommand : Command() {
         }
     ))
 
-    override fun handle(commandMessage: CommandMessage): MessageResponse {
+    override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         return commandMessage.createResponse() {
             val expression = commandMessage.args.run {
                 if (isEmpty()){

@@ -1,24 +1,22 @@
 package icu.takeneko.nekobot.command
 
-import icu.takeneko.nekobot.message.Message
-import icu.takeneko.nekobot.message.MessageResponse
+import icu.takeneko.nekobot.config.config
+import icu.takeneko.nekobot.message.CommandContext
+import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.message.MessageType
 
 abstract class Command {
-
     open val commandPrefix: String = "!"
     open val helpMessage: String = ""
-    abstract fun handle(commandMessage: CommandMessage): MessageResponse?
+    abstract fun handle(commandMessage: CommandMessage): MessageResponseCreationScope
     operator fun invoke(commandMessage: CommandMessage) = handle(commandMessage)
-
 }
 
-class CommandMessage(val message: Message) {
-    private val component = message.messagePlain.split(" ")
+class CommandMessage(val context: CommandContext) {
+    private val component = context.messagePlain.split(" ")
     val args = component.subList(1, component.size)
     val commandPrefix = component[0]
-    val sender = message.describeSender()
-    val group = message.group?.id?.toString()
-    val from = message.messageType
+
     operator fun get(index: Int): String? {
         return try {
             args[index]
@@ -27,16 +25,18 @@ class CommandMessage(val message: Message) {
         }
     }
 
-    fun createResponse(): MessageResponse {
-        return MessageResponse(message)
-    }
-
-    fun createResponse(fn: MessageResponse.() -> Unit): MessageResponse {
-        return MessageResponse(message).apply(fn)
+    fun createResponse(fn: MessageResponseCreationScope.() -> Unit): MessageResponseCreationScope {
+        return MessageResponseCreationScope(context).apply(fn)
     }
 
     operator fun <T> invoke(fn: CommandMessage.() -> T): T {
         return fn(this)
+    }
+
+    fun checkOperatorCommand(){
+        if (context.messageType != MessageType.PRIVATE || context.describeSender() !in config.operator) {
+            throw CommandIgnoredException()
+        }
     }
 
 }

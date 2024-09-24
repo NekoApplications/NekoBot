@@ -1,8 +1,8 @@
 package icu.takeneko.nekobot.command
 
 import icu.takeneko.nekobot.config.GroupRuleSetting
-import icu.takeneko.nekobot.message.Message
-import icu.takeneko.nekobot.message.MessageResponse
+import icu.takeneko.nekobot.message.CommandContext
+import icu.takeneko.nekobot.message.MessageResponseCreationScope
 import icu.takeneko.nekobot.message.MessageType
 import org.slf4j.LoggerFactory
 
@@ -13,24 +13,26 @@ object CommandManager {
         commands[command.commandPrefix] = command
     }
 
-    fun run(input: Message): MessageResponse? {
-        val commandMessage = CommandMessage(input)
+    fun run(context: CommandContext): MessageResponseCreationScope? {
+        val commandMessage = CommandMessage(context)
         return if (commands.containsKey(commandMessage.commandPrefix)) {
-            if (commandMessage.from == MessageType.GROUP) {
-                if (!GroupRuleSetting.botEnabledFor(input.group!!.id.toString())) {
-                   return null
+            if (context.messageType == MessageType.GROUP) {
+                if (!GroupRuleSetting.botEnabledFor(context.group!!.id.toString())) {
+                    return null
                 }
-                if (!GroupRuleSetting.commandEnabledFor(input.group.id.toString(), commandMessage.commandPrefix)) {
+                if (!GroupRuleSetting.commandEnabledFor(context.group.id.toString(), commandMessage.commandPrefix)) {
                     return null
                 }
             }
             try {
                 commands[commandMessage.commandPrefix]!!(commandMessage)
+            } catch (e: CommandIgnoredException) {
+                return null
             } catch (e: Exception) {
-                logger.error("Exception occurred while running command ${input.messagePlain}", e)
-                return MessageResponse(input) {
+                logger.error("Exception occurred while running command ${context.messagePlain}", e)
+                return MessageResponseCreationScope(context) {
                     +"Server Internal Error."
-                    +input.messagePlain
+                    +context.messagePlain
                     +"~~~"
                     +e.toString()
                 }

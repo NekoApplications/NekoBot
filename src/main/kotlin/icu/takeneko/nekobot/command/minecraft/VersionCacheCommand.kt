@@ -2,8 +2,7 @@ package icu.takeneko.nekobot.command.minecraft
 
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
-import icu.takeneko.nekobot.message.Message
-import icu.takeneko.nekobot.message.MessageResponse
+import icu.takeneko.nekobot.message.MessageResponseCreationScope
 
 class VersionCacheCommand : Command() {
 
@@ -13,7 +12,7 @@ class VersionCacheCommand : Command() {
     override val helpMessage: String
         get() = "!vc [p | {[a | add}] [<version> | latest | latestStable]}]"
 
-    override fun handle(commandMessage: CommandMessage): MessageResponse? {
+    override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         return commandMessage.createResponse {
             val scene = commandMessage[0] ?: run {
                 +helpMessage

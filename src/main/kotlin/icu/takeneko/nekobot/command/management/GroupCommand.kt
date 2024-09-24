@@ -3,10 +3,7 @@ package icu.takeneko.nekobot.command.management
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
 import icu.takeneko.nekobot.config.GroupRuleSetting
-import icu.takeneko.nekobot.config.config
-import icu.takeneko.nekobot.message.Message
-import icu.takeneko.nekobot.message.MessageResponse
-import icu.takeneko.nekobot.message.MessageType
+import icu.takeneko.nekobot.message.MessageResponseCreationScope
 
 class GroupCommand : Command() {
 
@@ -16,10 +13,8 @@ class GroupCommand : Command() {
     override val helpMessage: String
         get() = "!g [enable | disable | e | d] <group> "
 
-    override fun handle(commandMessage: CommandMessage): MessageResponse? {
-        if (commandMessage.from != MessageType.PRIVATE || commandMessage.sender !in config.operator) {
-            return null
-        }
+    override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
+        commandMessage.checkOperatorCommand()
         return commandMessage.createResponse {
             if (commandMessage.args.isEmpty()) {
                 +helpMessage

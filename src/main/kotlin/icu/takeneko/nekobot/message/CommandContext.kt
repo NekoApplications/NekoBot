@@ -1,29 +1,47 @@
 package icu.takeneko.nekobot.message
 
+import icu.takeneko.nekobot.Context
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.User
 import net.mamoe.mirai.message.data.MessageChain
 import net.mamoe.mirai.message.data.MessageChainBuilder
 
 
-data class Message(
+data class CommandContext(
     val platformMessage: MessageChain,
     val group: Group?,
     val source: User,
     val messageType: MessageType
-) {
+) :Context{
     val messagePlain: String
         get() = platformMessage.contentToString()
 
     fun describeSender() = source.id.toString()
+
+    fun describeGroup() = group!!.id.toString()
+
+    fun isGroupMessage() = messageType == MessageType.GROUP
+
+    fun isPrivateMessage() = messageType == MessageType.PRIVATE
+
+    override fun descriptor(): String {
+        return describeSender()
+    }
 }
 
 enum class MessageType {
     GROUP, PRIVATE
 }
 
-class MessageResponse(val source: Message) {
+class MessageResponseCreationScope(val context: CommandContext) {
     private val builder = MessageChainBuilder()
+
+    constructor(
+        context: CommandContext,
+        fn: MessageResponseCreationScope.() -> Unit
+    ) : this(context) {
+        this.fn()
+    }
 
     operator fun String.unaryPlus() {
         builder.add(this + "\n")
@@ -33,14 +51,11 @@ class MessageResponse(val source: Message) {
         builder.add(string)
     }
 
-    fun asMessageChain() = builder.asMessageChain()
+    fun create() = builder.asMessageChain()
 
-    operator fun invoke(fn: MessageResponse.() -> Unit): MessageResponse {
+    operator fun invoke(fn: MessageResponseCreationScope.() -> Unit): MessageResponseCreationScope {
         fn(this)
         return this
     }
-}
 
-fun MessageResponse(src: Message, fn: MessageResponse.() -> Unit): MessageResponse {
-    return MessageResponse(src).apply(fn)
 }

@@ -5,9 +5,7 @@ import icu.takeneko.nekobot.command.CommandManager
 import icu.takeneko.nekobot.command.CommandMessage
 import icu.takeneko.nekobot.config.GroupRuleSetting
 import icu.takeneko.nekobot.config.config
-import icu.takeneko.nekobot.message.Message
-import icu.takeneko.nekobot.message.MessageResponse
-import icu.takeneko.nekobot.message.MessageType
+import icu.takeneko.nekobot.message.MessageResponseCreationScope
 
 class GroupRuleCommand : Command() {
 
@@ -17,10 +15,8 @@ class GroupRuleCommand : Command() {
     override val helpMessage: String
         get() = "!gr [enable | disable | e | d | p] <group> [<command> | ALL]"
 
-    override fun handle(commandMessage: CommandMessage): MessageResponse? {
-        if (commandMessage.from != MessageType.PRIVATE || commandMessage.sender !in config.operator) {
-            return null
-        }
+    override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
+        commandMessage.checkOperatorCommand()
         return commandMessage.createResponse {
             if (commandMessage.args.isEmpty()) {
                 +helpMessage
