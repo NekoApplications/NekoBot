@@ -9,12 +9,14 @@ import icu.takeneko.nekobot.command.status.StatusCommand
 import icu.takeneko.nekobot.command.utility.CalculatorCommand
 import icu.takeneko.nekobot.command.utility.PreferenceCommand
 import icu.takeneko.nekobot.config.loadConfig
+import icu.takeneko.nekobot.i18n.I18n
 import icu.takeneko.nekobot.mcversion.MinecraftVersion
 import icu.takeneko.nekobot.message.CommandContext
 import icu.takeneko.nekobot.message.MessageType
 import icu.takeneko.nekobot.preference.Preference
 import icu.takeneko.nekobot.util.BuildProperties
 import kotlinx.coroutines.launch
+import net.mamoe.mirai.console.plugin.PluginManager.INSTANCE.load
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.event.GlobalEventChannel
@@ -41,7 +43,14 @@ object PluginMain : KotlinPlugin(
         logger.info("Loading config.")
         loadConfig()
         if (!Preference.load()) {
+            logger.error("Failed to initalize Preference subsystem.")
             logger.error("Refused to start application to prevent data loss.")
+            exitProcess(1)
+        }
+        try {
+            I18n.init()
+        } catch (e: Throwable) {
+            logger.error("Failed to initialize translation subsystem.", e)
             exitProcess(1)
         }
         val future = CompletableFuture.runAsync {
