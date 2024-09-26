@@ -7,10 +7,12 @@ import icu.takeneko.nekobot.command.management.HelpCommand
 import icu.takeneko.nekobot.command.minecraft.*
 import icu.takeneko.nekobot.command.status.StatusCommand
 import icu.takeneko.nekobot.command.utility.CalculatorCommand
+import icu.takeneko.nekobot.command.utility.PreferenceCommand
 import icu.takeneko.nekobot.config.loadConfig
 import icu.takeneko.nekobot.mcversion.MinecraftVersion
 import icu.takeneko.nekobot.message.CommandContext
 import icu.takeneko.nekobot.message.MessageType
+import icu.takeneko.nekobot.preference.Preference
 import icu.takeneko.nekobot.util.BuildProperties
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
@@ -19,15 +21,10 @@ import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.events.FriendMessageEvent
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import java.lang.management.ManagementFactory
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.*
 import kotlin.system.exitProcess
 
-val executor = Executors.newFixedThreadPool(4)
-val scheduler = Executors.newScheduledThreadPool(2)
+val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(2)
 
 object PluginMain : KotlinPlugin(
     JvmPluginDescription(
@@ -43,13 +40,17 @@ object PluginMain : KotlinPlugin(
         logger.info("Nya!")
         logger.info("Loading config.")
         loadConfig()
+        if (!Preference.load()) {
+            logger.error("Refused to start application to prevent data loss.")
+            exitProcess(1)
+        }
         val future = CompletableFuture.runAsync {
             logger.info("Updating Mapping version.")
             mappingRepository.updateVersion()
             logger.info("Updating Minecraft version.")
             MinecraftVersion.update()
             logger.info("Updating Minecraft version for mapping.")
-            if(!versionRepository.update()){
+            if (!versionRepository.update()) {
                 throw IllegalStateException("Update Minecraft version for mapping failed.")
             }
             scheduler.scheduleWithFixedDelay(
@@ -74,6 +75,7 @@ object PluginMain : KotlinPlugin(
                 register(VersionCacheCommand())
                 register(MinecraftVersionCommand())
                 register(CalculatorCommand())
+                register(PreferenceCommand())
             }
             logger.info("Command Registered: ${CommandManager.commandPrefixes.joinToString(", ")}")
             val eventChannel = GlobalEventChannel.parentScope(this)
@@ -88,7 +90,7 @@ object PluginMain : KotlinPlugin(
                             MessageType.GROUP
                         )
                     ) ?: return@launch
-                    ret.context.group!!.sendMessage(ret.create())
+                    ret.context.group!!.sendMessage(ret.create() ?: return@launch)
                 }
 
             }
@@ -102,14 +104,14 @@ object PluginMain : KotlinPlugin(
                             MessageType.PRIVATE
                         )
                     ) ?: return@launch
-                    ret.context.source.sendMessage(ret.create())
+                    ret.context.source.sendMessage(ret.create() ?: return@launch)
                 }
             }
             Unit
         }
-        try{
+        try {
             future.get(30, TimeUnit.SECONDS)
-        }catch (i: TimeoutException) {
+        } catch (i: TimeoutException) {
             logger.error("Plugin initialization does not complete within 30 seconds, dumping threads.")
             val bean = ManagementFactory.getThreadMXBean()
             bean.dumpAllThreads(true, true).forEach {
@@ -117,7 +119,7 @@ object PluginMain : KotlinPlugin(
             }
             logger.error("Cowardly refusing to start application because a broken application state.")
             exitProcess(1)
-        }catch (e:ExecutionException){
+        } catch (e: ExecutionException) {
             logger.error("Plugin initialization failed to complete.")
             logger.error("Cowardly refusing to start application because a broken application state.")
             exitProcess(1)
