@@ -16,7 +16,7 @@ object I18n {
     }
 
     fun translate(language: String, key: String, vararg formatArgs: Any?): String {
-        return this[language][key]?.format(*formatArgs) ?: key
+        return (this[language][key] ?: this[defaultLanguage][key])?.format(*formatArgs) ?: key
     }
 
     operator fun get(key: String): Resource {
