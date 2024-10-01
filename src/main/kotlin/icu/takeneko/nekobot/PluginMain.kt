@@ -99,7 +99,7 @@ object PluginMain : KotlinPlugin(
                             MessageType.GROUP
                         )
                     ) ?: return@launch
-                    ret.context.group!!.sendMessage(ret.create() ?: return@launch)
+                    ret.context.group!!.sendMessage(ret.create())
                 }
 
             }
@@ -113,7 +113,7 @@ object PluginMain : KotlinPlugin(
                             MessageType.PRIVATE
                         )
                     ) ?: return@launch
-                    ret.context.source.sendMessage(ret.create() ?: return@launch)
+                    ret.context.source.sendMessage(ret.create())
                 }
             }
             Unit

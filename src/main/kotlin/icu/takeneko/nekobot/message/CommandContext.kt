@@ -51,8 +51,7 @@ class MessageResponseCreationScope(val context: CommandContext) {
         builder.add(string)
     }
 
-    fun create(): MessageChain? {
-        if (builder.isEmpty())return null
+    fun create(): MessageChain {
         return builder.asMessageChain()
     }
 

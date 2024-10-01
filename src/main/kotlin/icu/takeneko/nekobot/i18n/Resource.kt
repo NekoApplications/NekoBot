@@ -19,12 +19,11 @@ class Resource(private val name: String) {
 
     @OptIn(ExperimentalSerializationApi::class)
     fun read() {
-        (Resource::class.java.getResourceAsStream("$bundledResourcePath$name")
-            ?: throw IllegalArgumentException("Could not read resource $name as it does not exist."))
+        (Resource::class.java.classLoader.getResourceAsStream("$bundledResourcePath$name.json")
+            ?: throw IllegalArgumentException("Could not read resource $bundledResourcePath$name.json as it does not exist."))
             .use {
                 json.decodeFromStream<Map<String, String>>(it)
-            }
-            .forEach { (k, v) ->
+            }.forEach { (k, v) ->
                 data[k] = v
             }
         Path("$overrideResourcePath$name").run {
