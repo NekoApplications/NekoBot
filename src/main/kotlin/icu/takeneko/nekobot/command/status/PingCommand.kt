@@ -5,13 +5,13 @@ import icu.takeneko.nekobot.command.CommandMessage
 import icu.takeneko.nekobot.message.MessageResponseCreationScope
 import icu.takeneko.nekobot.util.getVersionInfoString
 
-class StatusCommand : Command() {
+class PingCommand : Command() {
 
-    override val commandPrefix: String = "!stat"
-    override val helpMessage: String = "!stat"
+    override val commandPrefix: String = "!ping"
+    override val helpMessage: String = "!ping"
 
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope =
         commandMessage.createResponse {
-            +"${System.currentTimeMillis()} NekoBot ${getVersionInfoString()}"
+            +"PONG ${System.currentTimeMillis()} NekoBot ${getVersionInfoString()}"
         }
 }

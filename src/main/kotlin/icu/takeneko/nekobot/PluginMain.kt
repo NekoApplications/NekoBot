@@ -5,7 +5,7 @@ import icu.takeneko.nekobot.command.management.GroupCommand
 import icu.takeneko.nekobot.command.management.GroupRuleCommand
 import icu.takeneko.nekobot.command.management.HelpCommand
 import icu.takeneko.nekobot.command.minecraft.*
-import icu.takeneko.nekobot.command.status.StatusCommand
+import icu.takeneko.nekobot.command.status.PingCommand
 import icu.takeneko.nekobot.command.utility.CalculatorCommand
 import icu.takeneko.nekobot.command.utility.PreferenceCommand
 import icu.takeneko.nekobot.config.loadConfig
@@ -16,7 +16,6 @@ import icu.takeneko.nekobot.message.MessageType
 import icu.takeneko.nekobot.preference.Preference
 import icu.takeneko.nekobot.util.BuildProperties
 import kotlinx.coroutines.launch
-import net.mamoe.mirai.console.plugin.PluginManager.INSTANCE.load
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.event.GlobalEventChannel
@@ -74,7 +73,7 @@ object PluginMain : KotlinPlugin(
             )
             logger.info("Registering Command.")
             CommandManager.apply {
-                register(StatusCommand())
+                register(PingCommand())
                 register(YarnClassCommand())
                 register(YarnMethodCommand())
                 register(YarnFieldCommand())

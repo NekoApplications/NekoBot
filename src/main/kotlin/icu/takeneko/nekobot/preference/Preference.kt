@@ -70,7 +70,7 @@ fun String.parseKeyPair(): Pair<String, String>? {
     if (this.contains("=")) {
         val splited = this.split("=")
         if (splited.size < 2) return null
-        return splited[0] to splited.subList(0, splited.size).joinToString("=", "", "")
+        return (splited[0] to splited.subList(0, splited.size).joinToString("=", "", ""))
     }
     return null
 }
