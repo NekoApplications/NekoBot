@@ -39,38 +39,50 @@ class YarnMethodCommand : Command() {
                 +"**Class Names**"
                 +""
                 for (namespace in namespaces) {
-                    +"**$namespace:** ${result.owner.getName(namespace) ?: continue}"
+                    +"**$namespace:** `${result.owner.getName(namespace) ?: continue}`"
                 }
                 +""
                 +"**Method Names**"
                 for (namespace in namespaces) {
-                    +"**$namespace:** ${result.getName(namespace) ?: continue}"
+                    +"**$namespace:** `${result.getName(namespace) ?: continue}`"
                 }
                 +""
                 +String.format(
                     """
-                            **Yarn Method Descriptor**
+                            **Yarn Field Descriptor**
 
                             %3${'$'}s
                             **Yarn Access Widener**
 
-                            accessible${'\t'}method${'\t'}%1${'$'}s${'\t'}%2${'$'}s${'\t'}%3${'$'}s
+                            `accessible${'\t'}method${'\t'}%1${'$'}s${'\t'}%2${'$'}s${'\t'}%3${'$'}s`
+                            
+                            **Yarn Access Widener**
+
+                            `accessible${'\t'}method${'\t'}%4${'$'}s${'\t'}%5${'$'}s${'\t'}%6${'$'}s`
+                            
                             **Yarn Mixin Target**
 
-                            L%1${'$'}s;%2${'$'}s%3${'$'}s
+                            `L%1${'$'}s;%2${'$'}s%3${'$'}s`
+                            
+                            **MojMap/MCP Mixin Target**
+
+                            `L%4${'$'}s;%5${'$'}s%6${'$'}s`
 
                             """.trimIndent(),
                     result.owner.getName("yarn")?: continue,
                     result.getName("yarn")?: continue,
-                    result.getDesc("yarn")?: continue
+                    result.getDesc("yarn")?: continue,
+                    result.owner.getNameOrElse("mojmap", "mcp")?: continue,
+                    result.getNameOrElse("mojmap", "mcp")?: continue,
+                    result.getDescOrElse("mojmap", "mcp")?: continue
                 )
                 +"**Access Transformer**"
-                +"public ${result.owner.getNameOrElse("mcp", "mojmap")?.replace("/", ".")} ${
+                +"`public ${result.owner.getNameOrElse("mcp", "mojmap")?.replace("/", ".")} ${
                     result.getNameOrElse(
                         "mcp",
                         "mojmap"
                     )
-                }${result.getDescOrElse("mcp", "mojmap")}"
+                }${result.getDescOrElse("mcp", "mojmap")}`"
             }
             +"query ns: ${namespaces.joinToString(",")}"
         }

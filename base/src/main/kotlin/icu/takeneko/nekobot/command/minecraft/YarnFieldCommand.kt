@@ -3,6 +3,7 @@ package icu.takeneko.nekobot.command.minecraft
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
 import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.util.getDescOrElse
 import icu.takeneko.nekobot.util.getNameOrElse
 
 class YarnFieldCommand : Command() {
@@ -52,18 +53,30 @@ class YarnFieldCommand : Command() {
                             %3${'$'}s
                             **Yarn Access Widener**
 
-                            accessible${'\t'}method${'\t'}%1${'$'}s${'\t'}%2${'$'}s${'\t'}%3${'$'}s
+                            `accessible${'\t'}method${'\t'}%1${'$'}s${'\t'}%2${'$'}s${'\t'}%3${'$'}s`
+                            
+                            **Yarn Access Widener**
+
+                            `accessible${'\t'}method${'\t'}%4${'$'}s${'\t'}%5${'$'}s${'\t'}%6${'$'}s`
+                            
                             **Yarn Mixin Target**
 
-                            L%1${'$'}s;%2${'$'}s%3${'$'}s
+                            `L%1${'$'}s;%2${'$'}s%3${'$'}s`
+                            
+                            **MojMap/MCP Mixin Target**
+
+                            `L%4${'$'}s;%5${'$'}s%6${'$'}s`
 
                             """.trimIndent(),
                     result.owner.getName("yarn") ?: continue,
                     result.getName("yarn") ?: continue,
-                    result.getDesc("yarn") ?: continue
+                    result.getDesc("yarn") ?: continue,
+                    result.owner.getNameOrElse("mojmap", "mcp") ?: continue,
+                    result.getNameOrElse("mojmap", "mcp") ?: continue,
+                    result.getDescOrElse("mojmap", "mcp") ?: continue
                 )
                 +"**Access Transformer**"
-                +"public-f ${result.owner.getNameOrElse("mcp", "mojmap")} ${result.getNameOrElse("mcp", "mojmap")?.replace("/", ".")}"
+                +"`public-f ${result.owner.getNameOrElse("mcp", "mojmap")} ${result.getNameOrElse("mcp", "mojmap")?.replace("/", ".")}`"
             }
             +"query ns: ${namespaces.joinToString(",")}"
         }
