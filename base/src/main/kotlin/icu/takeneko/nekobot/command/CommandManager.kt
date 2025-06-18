@@ -17,8 +17,8 @@ class CommandManager(private val commandPrefix: String) {
     fun run(context: CommandContext): MessageResponseCreationScope? {
         val commandMessage = CommandMessage(context)
         if (!commandMessage.commandPrefix.startsWith(commandPrefix)) return null
-
-        if (commands.containsKey(commandMessage.commandPrefix)) {
+        val prefix = commandMessage.commandPrefix.substring(1)
+        if (commands.containsKey(prefix)) {
             if (context.isGroupMessage() && Environment.permissionManagementEnabled) {
                 if (!GroupRuleSetting.botEnabledFor(context.describeGroup())) {
                     return null
@@ -28,7 +28,7 @@ class CommandManager(private val commandPrefix: String) {
                 }
             }
             try {
-                return commands[commandMessage.commandPrefix]!!(commandMessage)
+                return commands[prefix]!!(commandMessage)
             } catch (_: CommandIgnoredException) {
                 return null
             } catch (e: Exception) {
