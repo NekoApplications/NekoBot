@@ -70,10 +70,13 @@ class NekoBot {
         logger.info("Command Registered: ${commandManager.commandPrefixes.joinToString(", ")}")
     }
 
-    fun bootstrap() {
+    fun preBootstrap() {
         logger.info("Nya!")
         logger.info("Loading config.")
         loadConfig()
+    }
+
+    fun bootstrap() {
         if (!Preference.load()) {
             logger.error("Failed to initalize Preference subsystem.")
             logger.error("Refused to start application to prevent data loss.")
