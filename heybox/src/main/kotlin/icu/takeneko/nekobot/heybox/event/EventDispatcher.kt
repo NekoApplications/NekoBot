@@ -2,7 +2,6 @@ package icu.takeneko.nekobot.heybox.event
 
 import icu.takeneko.nekobot.coroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import net.cjsah.bot.event.Event
 import org.slf4j.LoggerFactory
@@ -26,7 +25,7 @@ object EventDispatcher {
         return getSubscribers(clazz).computeIfAbsent(priority) { mutableListOf() }
     }
 
-    inline fun <reified T : Event> register(
+    inline fun <reified T : Event> subscribe(
         priority: EventPriority = EventPriority.NORMAL,
         noinline fn: suspend T.() -> Unit
     ) {

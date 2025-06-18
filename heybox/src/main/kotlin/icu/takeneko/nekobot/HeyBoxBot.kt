@@ -50,9 +50,10 @@ fun main() {
         }
         coroutineScope.cancel()
     })
-    EventDispatcher.register<CommandEvent> {
+    EventDispatcher.subscribe<CommandEvent> {
         val context = CommandContextHeyboxImpl(this, bot.commandManager)
-        val ret = bot.acceptCommand(context) ?: return@register
+        logger.info("[{}/{}] -> {}", this.senderInfo.nickname, this.senderInfo.id, context.messagePlain)
+        val ret = bot.acceptCommand(context) ?: return@subscribe
         Api.sendCardMsg(CardBuilder(this.roomInfo.id, this.channelInfo.id)
             .replay(this.msgId)
             .card { item ->
@@ -61,6 +62,7 @@ fun main() {
                         for (string in ret.builder) {
                             append(string)
                         }
+                        logger.info("[{}/{}] <- {}",  this@subscribe.senderInfo.nickname, this@subscribe.senderInfo.id, this.toString())
                     })
                 }
             }
