@@ -26,6 +26,13 @@ application {
 
 tasks.shadowJar {
     archiveBaseName = "nekobot-heybox"
+    eachFile {
+        if (this.file.name == "logback.xml") {
+            val text = this.file.readText()
+            if (text.contains("net.cjsah"))
+            this.exclude()
+        }
+    }
 }
 
 tasks.withType<JavaCompile> {

@@ -37,7 +37,7 @@ fun main() {
     bot.bootstrap()
     logger.info("Commands:")
     bot.commandManager.commands.forEach { t, u ->
-        logger.info(u.helpMessage)
+        logger.info("    - " + u.helpMessage)
     }
     Api.setToken(config.token)
     logger.info("Starting HeyBox bot using token: " + config.token)

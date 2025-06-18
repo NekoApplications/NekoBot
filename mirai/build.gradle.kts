@@ -20,7 +20,8 @@ repositories {
 
 tasks.shadowJar {
     archiveBaseName = "nekobot-mirai"
-    exclude("/kotlin/**","/kotlinx/**", "/net/mamoe/*", "/org/slf4j*", "/ch/qos*")
+    archiveClassifier = "shadow"
+    exclude("/kotlin/**", "/kotlinx/**", "/net/mamoe/*", "/org/slf4j*", "/ch/qos*")
 }
 
 tasks.withType<JavaCompile> {

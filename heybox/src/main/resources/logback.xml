@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
 
-    <contextName>omms-central</contextName>
+    <contextName>nekobot</contextName>
     <property name="LOG_HOME" value="logs"/>
     <conversionRule conversionWord="customColor"
                    converterClass="icu.takeneko.nekobot.util.LogbackCustomColor"/>
@@ -23,9 +23,6 @@
             <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}.log.zip</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>1GB</maxFileSize>
-        </triggeringPolicy>
         <encoder>
             <charset>UTF-8</charset>
             <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread/%level] \(%logger{1}\) : %msg%n</pattern>
