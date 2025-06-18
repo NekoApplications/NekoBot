@@ -12,10 +12,10 @@ import java.security.SecureRandom
 class CalculatorCommand : Command() {
 
     override val commandPrefix: String
-        get() = "!calc"
+        get() = "calc"
 
     override val helpMessage: String
-        get() = "!calc <expression>"
+        get() = "calc <expression>"
 
     private val evaluator = Evaluator(DefaultFunctions.ALL + listOf(
         object : Function("rand", 0..0) {

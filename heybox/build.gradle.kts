@@ -17,6 +17,7 @@ repositories {
     gradlePluginPortal()
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
     maven("https://maven.fabricmc.net")
+    maven("https://server.cjsah.net:1002/maven")
 }
 
 application {
@@ -28,16 +29,17 @@ tasks.shadowJar {
 }
 
 tasks.withType<JavaCompile> {
-    this.sourceCompatibility = "17"
-    this.targetCompatibility = "17"
+    this.sourceCompatibility = "21"
+    this.targetCompatibility = "21"
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 dependencies {
     implementation(project(":base"))
+    implementation("net.cjsah.bot:HeyBoxBotConsole:1.1.3")
 }
 
 apply(from = rootProject.file("buildSrc/shared.gradle.kts"))

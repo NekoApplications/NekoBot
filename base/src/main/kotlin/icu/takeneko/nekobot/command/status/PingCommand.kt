@@ -7,8 +7,8 @@ import icu.takeneko.nekobot.util.getVersionInfoString
 
 class PingCommand : Command() {
 
-    override val commandPrefix: String = "!ping"
-    override val helpMessage: String = "!ping"
+    override val commandPrefix: String = "ping"
+    override val helpMessage: String = "ping"
 
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope =
         commandMessage.createResponse {

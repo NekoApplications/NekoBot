@@ -1,12 +1,13 @@
 package icu.takeneko.nekobot.command
 
+import icu.takeneko.nekobot.Environment
 import icu.takeneko.nekobot.config.GroupRuleSetting
 import icu.takeneko.nekobot.message.CommandContext
 import icu.takeneko.nekobot.message.MessageResponseCreationScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class CommandManager {
+class CommandManager(private val commandPrefix: String) {
     val commands = mutableMapOf<String, Command>()
     val logger: Logger = LoggerFactory.getLogger("CommandManager")
     fun register(command: Command) {
@@ -15,8 +16,10 @@ class CommandManager {
 
     fun run(context: CommandContext): MessageResponseCreationScope? {
         val commandMessage = CommandMessage(context)
+        if (!commandMessage.commandPrefix.startsWith(commandPrefix)) return null
+
         if (commands.containsKey(commandMessage.commandPrefix)) {
-            if (context.isGroupMessage()) {
+            if (context.isGroupMessage() && Environment.permissionManagementEnabled) {
                 if (!GroupRuleSetting.botEnabledFor(context.describeGroup())) {
                     return null
                 }

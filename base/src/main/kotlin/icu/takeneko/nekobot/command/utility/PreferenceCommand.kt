@@ -9,10 +9,10 @@ import icu.takeneko.nekobot.preference.parseKeyPair
 class PreferenceCommand : Command() {
 
     override val commandPrefix: String
-        get() = "!pref"
+        get() = "pref"
 
     override val helpMessage: String
-        get() = "!pref [get key... | set <key=value>... | clear]"
+        get() = "pref [get key... | set <key=value>... | clear]"
 
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         return commandMessage.createResponse {

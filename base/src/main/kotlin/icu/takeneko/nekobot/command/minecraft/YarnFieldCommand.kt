@@ -7,10 +7,10 @@ import icu.takeneko.nekobot.util.getNameOrElse
 
 class YarnFieldCommand : Command() {
     override val commandPrefix: String
-        get() = "!yf"
+        get() = "yf"
 
     override val helpMessage: String
-        get() = "!yf <fieldName> Optional[<version> | latest | latestStable]"
+        get() = "yf <fieldName> Optional[<version> | latest | latestStable]"
 
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         return commandMessage.createResponse() {

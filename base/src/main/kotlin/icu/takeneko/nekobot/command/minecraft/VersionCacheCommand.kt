@@ -7,10 +7,10 @@ import icu.takeneko.nekobot.message.MessageResponseCreationScope
 class VersionCacheCommand : Command() {
 
     override val commandPrefix: String
-        get() = "!vc"
+        get() = "vc"
 
     override val helpMessage: String
-        get() = "!vc [p | {[a | add}] [<version> | latest | latestStable]}]"
+        get() = "vc [p | {[a | add}] [<version> | latest | latestStable]}]"
 
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         return commandMessage.createResponse {

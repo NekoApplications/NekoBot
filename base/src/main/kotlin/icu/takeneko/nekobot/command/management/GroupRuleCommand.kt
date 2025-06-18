@@ -9,10 +9,10 @@ import icu.takeneko.nekobot.message.MessageResponseCreationScope
 class GroupRuleCommand : Command() {
 
     override val commandPrefix: String
-        get() = "!gr"
+        get() = "gr"
 
     override val helpMessage: String
-        get() = "!gr [enable | disable | e | d | p] <group> [<command> | ALL]"
+        get() = "gr [enable | disable | e | d | p] <group> [<command> | ALL]"
 
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         commandMessage.checkOperatorCommand()

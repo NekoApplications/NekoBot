@@ -9,10 +9,10 @@ import icu.takeneko.nekobot.util.getNameOrElse
 class YarnMethodCommand : Command() {
 
     override val commandPrefix: String
-        get() = "!ym"
+        get() = "ym"
 
     override val helpMessage: String
-        get() = "!ym <methodName> Optional[<version> | latest | latestStable]"
+        get() = "ym <methodName> Optional[<version> | latest | latestStable]"
 
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         return commandMessage.createResponse {

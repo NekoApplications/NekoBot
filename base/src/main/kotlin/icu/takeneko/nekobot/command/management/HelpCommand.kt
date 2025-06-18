@@ -9,10 +9,10 @@ import icu.takeneko.nekobot.message.MessageType
 
 class HelpCommand : Command() {
     override val commandPrefix: String
-        get() = "!help"
+        get() = "help"
 
     override val helpMessage: String
-        get() = "!help"
+        get() = "help"
 
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
 //        if (commandMessage.from != MessageType.PRIVATE || commandMessage.scene !in config.operator) {

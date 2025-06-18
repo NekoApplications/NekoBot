@@ -8,10 +8,10 @@ import icu.takeneko.nekobot.message.MessageResponseCreationScope
 class MinecraftVersionCommand : Command() {
 
     override val commandPrefix: String
-        get() = "!mv"
+        get() = "mv"
 
     override val helpMessage: String
-        get() = "!mv Optional[<version> | latest | latestStable]"
+        get() = "mv Optional[<version> | latest | latestStable]"
 
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         return commandMessage.createResponse {

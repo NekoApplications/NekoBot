@@ -26,10 +26,10 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
-class NekoBot {
+class NekoBot(private val commandPrefix: String = "!") {
     private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(2)
     private val logger = LoggerFactory.getLogger("NekoBot")
-    val commandManager: CommandManager = CommandManager()
+    val commandManager: CommandManager = CommandManager(commandPrefix)
 
     private fun bootstrapMinecraftServices() {
         logger.info("Updating Mapping version.")
@@ -60,8 +60,10 @@ class NekoBot {
             register(YarnMethodCommand())
             register(YarnFieldCommand())
             register(HelpCommand())
-            register(GroupCommand())
-            register(GroupRuleCommand())
+            if (Environment.permissionManagementEnabled) {
+                register(GroupCommand())
+                register(GroupRuleCommand())
+            }
             register(VersionCacheCommand())
             register(MinecraftVersionCommand())
             register(CalculatorCommand())
