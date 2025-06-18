@@ -30,6 +30,7 @@ object PluginMain : KotlinPlugin(
 
     override fun onEnable() {
         val future = CompletableFuture.runAsync {
+            botInstance.preBootstrap()
             botInstance.bootstrap()
             val eventChannel = GlobalEventChannel.parentScope(this)
             eventChannel.subscribeAlways<GroupMessageEvent> {
