@@ -7,3 +7,4 @@
 /run/
 /debug-sandbox
 .DS_Store
+/heybox/run

@@ -1,0 +1,47 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+plugins {
+    java
+    application
+    kotlin("jvm")
+    kotlin("plugin.serialization")
+    id("com.gradleup.shadow") version "9.0.0-beta17"
+}
+
+group = "icu.takeneko"
+version = "1.3"
+
+repositories {
+    maven("https://central.sonatype.com/repository/maven-snapshots/")
+    mavenCentral()
+    gradlePluginPortal()
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
+    maven("https://maven.fabricmc.net")
+}
+
+application {
+    mainClass = "icu.takeneko.nekobot.HeyBoxBotKt"
+}
+
+tasks.shadowJar {
+    archiveBaseName = "nekobot-heybox"
+}
+
+tasks.withType<JavaCompile> {
+    this.sourceCompatibility = "17"
+    this.targetCompatibility = "17"
+}
+
+kotlin {
+    jvmToolchain(17)
+}
+
+dependencies {
+    implementation(project(":base"))
+}
+
+apply(from = rootProject.file("buildSrc/shared.gradle.kts"))
+
+tasks.getByName("processResources") {
+    dependsOn("generateProperties")
+}
