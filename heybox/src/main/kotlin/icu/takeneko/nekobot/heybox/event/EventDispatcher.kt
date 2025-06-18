@@ -9,13 +9,7 @@ import org.slf4j.LoggerFactory
 object EventDispatcher {
     private val logger = LoggerFactory.getLogger("EventDispatcher")
 
-    private val eventSubscribers = mutableMapOf<
-        Class<out Event>,
-        MutableMap<
-            EventPriority,
-            MutableList<suspend Event.() -> Unit>
-            >
-        >()
+    private val eventSubscribers: MutableMap<Class<out Event>, MutableMap<EventPriority, MutableList<suspend Event.() -> Unit>>> = mutableMapOf()
 
     fun getSubscribers(clazz: Class<out Event>): MutableMap<EventPriority, MutableList<suspend Event.() -> Unit>> {
         return eventSubscribers.computeIfAbsent(clazz) { mutableMapOf() }

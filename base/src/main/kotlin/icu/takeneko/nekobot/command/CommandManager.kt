@@ -23,7 +23,7 @@ class CommandManager(private val commandPrefix: String) {
                 if (!GroupRuleSetting.botEnabledFor(context.describeGroup())) {
                     return null
                 }
-                if (!GroupRuleSetting.commandEnabledFor(context.describeGroup(), commandMessage.commandPrefix)) {
+                if (!GroupRuleSetting.commandEnabledFor(context.describeGroup(), prefix)) {
                     return null
                 }
             }
