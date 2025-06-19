@@ -36,7 +36,7 @@ class CalculatorCommand : Command() {
         return commandMessage.createResponse() {
             val expression = commandMessage.args.run {
                 if (isEmpty()){
-                    +helpMessage
+                    + "`$helpMessage`"
                     return@createResponse
                 }
                 joinToString(" ")

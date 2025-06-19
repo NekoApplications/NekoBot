@@ -17,7 +17,7 @@ class YarnMethodCommand : Command() {
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         return commandMessage.createResponse {
             if (commandMessage.args.isEmpty()) {
-                +helpMessage
+                + "`$helpMessage`"
                 return@createResponse
             }
             val version = versionRepository.resolve(commandMessage[1]) ?: run {

@@ -36,7 +36,7 @@ class CommandManager(private val commandPrefix: String) {
                 return MessageResponseCreationScope(context) {
                     +"Server Internal Error."
                     +context.messagePlain
-                    +"~~~"
+                    +"^~~"
                     +e.toString()
                 }
             }

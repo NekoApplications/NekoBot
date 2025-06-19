@@ -32,7 +32,7 @@ class MessageResponseCreationScope(val context: CommandContext) {
     }
 
     operator fun String.unaryPlus() {
-        builder.add(this + "\n")
+        builder.add("$this  \n")
     }
 
     fun append(string: String) {

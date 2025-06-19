@@ -17,7 +17,7 @@ class PreferenceCommand : Command() {
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         return commandMessage.createResponse {
             if (commandMessage.args.isEmpty()) {
-                +helpMessage
+                + "`$helpMessage`"
                 return@createResponse
             }
             val verb = commandMessage.args[0]
@@ -69,12 +69,12 @@ class PreferenceCommand : Command() {
                 }
 
                 else -> {
-                    +helpMessage
+                    + "`$helpMessage`"
                 }
             }
             Preference.flush()
             if (!actionPerformed) {
-                +helpMessage
+                + "`$helpMessage`"
             }
         }
     }

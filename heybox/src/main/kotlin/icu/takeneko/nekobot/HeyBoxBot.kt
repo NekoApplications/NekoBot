@@ -4,14 +4,17 @@ import icu.takeneko.nekobot.config.config
 import icu.takeneko.nekobot.heybox.NekoWebsocketClient
 import icu.takeneko.nekobot.heybox.event.EventDispatcher
 import icu.takeneko.nekobot.message.CommandContextHeyboxImpl
+import icu.takeneko.nekobot.message.MessageResponseCreationScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.plus
 import net.cjsah.bot.api.Api
 import net.cjsah.bot.api.CardBuilder
+import net.cjsah.bot.api.card.CardItem
 import net.cjsah.bot.data.TextType
 import net.cjsah.bot.event.events.CommandEvent
+import net.cjsah.bot.event.events.MessageEvent
 import org.java_websocket.enums.ReadyState
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
@@ -54,18 +57,25 @@ fun main() {
         val context = CommandContextHeyboxImpl(this, bot.commandManager)
         logger.info("[{}/{}] -> {}", this.senderInfo.nickname, this.senderInfo.id, context.messagePlain)
         val ret = bot.acceptCommand(context) ?: return@subscribe
-        Api.sendCardMsg(CardBuilder(this.roomInfo.id, this.channelInfo.id)
-            .replay(this.msgId)
-            .card { item ->
-                item.section {
-                    it.text(TextType.MARKDOWN, buildString {
-                        for (string in ret.builder) {
-                            append(string)
-                        }
-                        logger.info("[{}/{}] <- {}",  this@subscribe.senderInfo.nickname, this@subscribe.senderInfo.id, this.toString())
-                    })
+        Api.sendCardMsg(
+            CardBuilder(this.roomInfo.id, this.channelInfo.id)
+                .replay(this.msgId)
+                .card { item ->
+                    createResponseCard(ret, item)
                 }
-            }
+        )
+    }
+    //look at my eyes, tell me why, why baby why
+    EventDispatcher.subscribe<MessageEvent> {
+        val context = CommandContextHeyboxImpl(this, bot.commandManager)
+        logger.info("[{}/{}] -> {}", this.userName, this.userId, context.messagePlain)
+        val ret = bot.acceptCommand(context) ?: return@subscribe
+        Api.sendCardMsg(
+            CardBuilder(this.roomId, this.channelId)
+                .replay(this.msgId)
+                .card { item ->
+                    createResponseCard(ret, item)
+                }
         )
     }
     logger.info("Done(${timeUsed}s)!.")
@@ -73,6 +83,29 @@ fun main() {
     startWebsocketStateWatcher()
     while (true) {
         LockSupport.parkNanos(100)
+    }
+}
+
+private fun createResponseCard(
+    ret: MessageResponseCreationScope,
+    item: CardItem
+) {
+    val stringBuilder = StringBuilder()
+    for (string in ret.builder) {
+        val content = string.replace("<", "＜").replace(">", "＞")
+        if (string.replace(" ", "") == "\n") {
+            item.section {
+                it.text(TextType.MARKDOWN, stringBuilder.toString())
+            }
+            stringBuilder.clear()
+            continue
+        }
+        stringBuilder.append(content)
+    }
+    if (stringBuilder.isNotEmpty()) {
+        item.section {
+            it.text(TextType.MARKDOWN, stringBuilder.toString())
+        }
     }
 }
 

@@ -17,7 +17,7 @@ class GroupCommand : Command() {
         commandMessage.checkOperatorCommand()
         return commandMessage.createResponse {
             if (commandMessage.args.isEmpty()) {
-                +helpMessage
+                + "`$helpMessage`"
                 return@createResponse
             }
             val action = commandMessage[0] ?: run {

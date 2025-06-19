@@ -16,7 +16,7 @@ class YarnFieldCommand : Command() {
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         return commandMessage.createResponse() {
             if (commandMessage.args.isEmpty()) {
-                +helpMessage
+                + "`$helpMessage`"
                 return@createResponse
             }
             val version = versionRepository.resolve(commandMessage[1]) ?: run {
@@ -48,24 +48,20 @@ class YarnFieldCommand : Command() {
                 +""
                 +String.format(
                     """
-                            **Yarn Field Descriptor**
-
-                            %3${'$'}s
-                            **Yarn Access Widener**
-
-                            `accessible${'\t'}method${'\t'}%1${'$'}s${'\t'}%2${'$'}s${'\t'}%3${'$'}s`
+                            **Yarn Field Descriptor**  
+                            %3${'$'}s  
                             
-                            **Yarn Access Widener**
-
-                            `accessible${'\t'}method${'\t'}%4${'$'}s${'\t'}%5${'$'}s${'\t'}%6${'$'}s`
+                            **Yarn Access Widener**  
+                            `accessible${'\t'}method${'\t'}%1${'$'}s${'\t'}%2${'$'}s${'\t'}%3${'$'}s`  
                             
-                            **Yarn Mixin Target**
-
-                            `L%1${'$'}s;%2${'$'}s%3${'$'}s`
+                            **MojMap/MCP Access Widener**  
+                            `accessible${'\t'}method${'\t'}%4${'$'}s${'\t'}%5${'$'}s${'\t'}%6${'$'}s`  
                             
-                            **MojMap/MCP Mixin Target**
-
-                            `L%4${'$'}s;%5${'$'}s%6${'$'}s`
+                            **Yarn Mixin Target**  
+                            `L%1${'$'}s;%2${'$'}s%3${'$'}s`  
+                            
+                            **MojMap/MCP Mixin Target**  
+                            `L%4${'$'}s;%5${'$'}s%6${'$'}s`  
 
                             """.trimIndent(),
                     result.owner.getName("yarn") ?: continue,
@@ -75,7 +71,7 @@ class YarnFieldCommand : Command() {
                     result.getNameOrElse("mojmap", "mcp") ?: continue,
                     result.getDescOrElse("mojmap", "mcp") ?: continue
                 )
-                +"**Access Transformer**"
+                +"#### Access Transformer"
                 +"`public-f ${result.owner.getNameOrElse("mcp", "mojmap")} ${result.getNameOrElse("mcp", "mojmap")?.replace("/", ".")}`"
             }
             +"query ns: ${namespaces.joinToString(",")}"

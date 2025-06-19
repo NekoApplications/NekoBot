@@ -1,7 +1,7 @@
 package icu.takeneko.nekobot.command.management
 
+import icu.takeneko.nekobot.Environment
 import icu.takeneko.nekobot.command.Command
-import icu.takeneko.nekobot.command.CommandManager
 import icu.takeneko.nekobot.command.CommandMessage
 import icu.takeneko.nekobot.config.GroupRuleSetting
 import icu.takeneko.nekobot.message.MessageResponseCreationScope
@@ -22,10 +22,11 @@ class HelpCommand : Command() {
             +"**Commands**"
             +""
             commandMessage.context.manager().commands.forEach {
-                if (commandMessage.context.messageType == MessageType.PRIVATE
-                    || GroupRuleSetting.commandEnabledFor(commandMessage.context.describeGroup(), it.key)
+                if ((commandMessage.context.messageType == MessageType.PRIVATE
+                    || GroupRuleSetting.commandEnabledFor(commandMessage.context.describeGroup(), it.key))
+                    || !Environment.permissionManagementEnabled
                 ) {
-                    +it.value.helpMessage
+                    +"`${it.value.helpMessage}`"
                 }
             }
         }

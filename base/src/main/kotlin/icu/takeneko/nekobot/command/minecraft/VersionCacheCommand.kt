@@ -15,7 +15,7 @@ class VersionCacheCommand : Command() {
     override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
         return commandMessage.createResponse {
             val scene = commandMessage[0] ?: run {
-                +helpMessage
+                + "`$helpMessage`"
                 return@createResponse
             }
             when (scene) {
@@ -38,7 +38,7 @@ class VersionCacheCommand : Command() {
                         +version
                     }
                 }
-                else -> +helpMessage
+                else -> + "`$helpMessage`"
             }
         }
     }
