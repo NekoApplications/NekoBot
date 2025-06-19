@@ -3,7 +3,7 @@ package icu.takeneko.nekobot.command
 import icu.takeneko.nekobot.Environment
 import icu.takeneko.nekobot.config.GroupRuleSetting
 import icu.takeneko.nekobot.message.CommandContext
-import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.message.builder.MessageCreator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -14,7 +14,7 @@ class CommandManager(private val commandPrefix: String) {
         commands[command.commandPrefix] = command
     }
 
-    fun run(context: CommandContext): MessageResponseCreationScope? {
+    fun run(context: CommandContext): MessageCreator? {
         val commandMessage = CommandMessage(context)
         if (!commandMessage.commandPrefix.startsWith(commandPrefix)) return null
         val prefix = commandMessage.commandPrefix.substring(1)
@@ -33,7 +33,7 @@ class CommandManager(private val commandPrefix: String) {
                 return null
             } catch (e: Exception) {
                 logger.error("Exception occurred while running command ${context.messagePlain}", e)
-                return MessageResponseCreationScope(context) {
+                return MessageCreator(context) {
                     +"Server Internal Error."
                     +context.messagePlain
                     +"^~~"

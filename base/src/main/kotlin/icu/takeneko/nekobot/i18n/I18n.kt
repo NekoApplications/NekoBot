@@ -1,6 +1,6 @@
 package icu.takeneko.nekobot.i18n
 
-import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.message.builder.MessageCreator
 import icu.takeneko.nekobot.preference.Preference
 import icu.takeneko.nekobot.util.BuildProperties
 
@@ -24,7 +24,7 @@ object I18n {
     }
 }
 
-fun MessageResponseCreationScope.tr(key: String, vararg formatArgs: Any?): String {
+fun MessageCreator.tr(key: String, vararg formatArgs: Any?): String {
     return I18n.translate(
         Preference.get(this.context, languagePrefKey)?: I18n.defaultLanguage,
         key,

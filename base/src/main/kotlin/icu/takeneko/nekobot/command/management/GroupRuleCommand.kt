@@ -4,7 +4,7 @@ import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
 import icu.takeneko.nekobot.config.GroupRuleSetting
 import icu.takeneko.nekobot.config.config
-import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.message.builder.MessageCreator
 
 class GroupRuleCommand : Command() {
 
@@ -14,7 +14,7 @@ class GroupRuleCommand : Command() {
     override val helpMessage: String
         get() = "gr [enable | disable | e | d | p] <group> [<command> | ALL]"
 
-    override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
+    override fun handle(commandMessage: CommandMessage): MessageCreator {
         commandMessage.checkOperatorCommand()
         return commandMessage.createResponse {
             if (commandMessage.args.isEmpty()) {
