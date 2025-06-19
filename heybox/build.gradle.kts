@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "icu.takeneko"
-version = "1.3.3"
+version = "1.4.0"
 
 repositories {
     maven("https://central.sonatype.com/repository/maven-snapshots/")
