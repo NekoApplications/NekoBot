@@ -4,6 +4,7 @@ import icu.takeneko.nekobot.config.config
 import icu.takeneko.nekobot.message.CommandContext
 import icu.takeneko.nekobot.message.MessageResponseCreationScope
 import icu.takeneko.nekobot.message.MessageType
+import java.util.regex.Pattern
 
 abstract class Command {
     open val commandPrefix: String = "!"
@@ -13,7 +14,7 @@ abstract class Command {
 }
 
 class CommandMessage(val context: CommandContext) {
-    private val component = context.messagePlain.split(" ")
+    private val component = context.messagePlain.split(regex)
     val args = component.subList(1, component.size)
     val commandPrefix = component[0]
 
@@ -39,4 +40,8 @@ class CommandMessage(val context: CommandContext) {
         }
     }
 
+    companion object {
+        //wtf heybox
+        val regex = Pattern.compile("[\\s ]")
+    }
 }

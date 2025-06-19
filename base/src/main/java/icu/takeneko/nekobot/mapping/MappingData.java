@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 
 import static net.fabricmc.mappingio.tree.MappingTree.*;
 
-public final class MappingData {
+public class MappingData {
     private static final String intermediaryClassPrefix = "class_";
     private static final String intermediaryFullClassPrefix = "net/minecraft/" + intermediaryClassPrefix;
     private static final String intermediaryFieldPrefix = "field_";

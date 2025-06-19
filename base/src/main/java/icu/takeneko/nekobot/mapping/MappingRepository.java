@@ -27,6 +27,7 @@ import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 import net.fabricmc.mappingio.adapter.MappingNsRenamer;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
 import net.fabricmc.mappingio.format.ProGuardReader;
+import net.fabricmc.mappingio.format.SrgReader;
 import net.fabricmc.mappingio.format.Tiny1Reader;
 import net.fabricmc.mappingio.format.Tiny2Reader;
 import net.fabricmc.mappingio.format.TsrgReader;
@@ -68,6 +69,7 @@ public final class MappingRepository {
     private final Path mappingsDir;
 
     private final Map<String, MappingData> mcVersionToMappingMap = new ConcurrentHashMap<>();
+    private final Map<String, MappingDataNoYarn> mappingDataNoYarnMap = new ConcurrentHashMap<>();
 
     public MappingRepository(Path dataDir) {
         this.mappingsDir = dataDir.resolve("mappings");
@@ -79,7 +81,7 @@ public final class MappingRepository {
             mcVersionToMappingMap.entrySet().removeIf(entry -> {
                 try {
                     return !Objects.equals(entry.getValue().intermediaryMavenId, getMavenId(entry.getKey(), KIND_INTERMEDIARY))
-                            || !Objects.equals(entry.getValue().yarnMavenId, getMavenId(entry.getKey(), KIND_YARN));
+                        || !Objects.equals(entry.getValue().yarnMavenId, getMavenId(entry.getKey(), KIND_YARN));
                 } catch (IOException | InterruptedException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
@@ -142,7 +144,36 @@ public final class MappingRepository {
     }
 
     public MappingData getMappingData(String mcVersion) {
-        return mcVersionToMappingMap.computeIfAbsent(mcVersion, v -> createMappingData(v, mappingsDir));
+        MappingData mappingData = mcVersionToMappingMap.computeIfAbsent(mcVersion, v -> createMappingData(v, mappingsDir));
+        if (mappingData != null) return mappingData;
+        return mappingDataNoYarnMap.computeIfAbsent(mcVersion, v -> createMappingDataMojang(v, mappingsDir));
+    }
+
+    private static MappingDataNoYarn createMappingDataMojang(String mcVersion, Path mappingsDir) {
+        try {
+            MemoryMappingTree mappingTree = new MemoryMappingTree(true);
+            String mcpVersion;
+            mappingTree.setDstNamespaces(new ArrayList<>());
+            if (!retrieveMcMappings(mcVersion, mappingsDir, mappingTree, false)
+                || !retrieveSrgOrTSrgMappings(mcVersion, mappingsDir, mappingTree, !mappingTree.getClasses().isEmpty())
+                || (mcpVersion = retrieveMcpMappings(mcVersion, mappingsDir, mappingTree)) == null) {
+                return null;
+            }
+
+            if (mcpVersion.isEmpty()) mcpVersion = null;
+
+            return new MappingDataNoYarn(mcVersion, mcpVersion, mappingTree);
+        } catch (IOException | InterruptedException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static boolean retrieveSrgOrTSrgMappings(String mcVersion, Path mappingsDir, MemoryMappingTree visitor, boolean blockNewClass) throws URISyntaxException, IOException, InterruptedException {
+        boolean res = retrieveTSrgMappings(mcVersion, mappingsDir, visitor, blockNewClass);
+        if (!res) {
+            res = retrieveSrgMappings(mcVersion, mappingsDir, visitor, blockNewClass);
+        }
+        return res;
     }
 
     private static MappingData createMappingData(String mcVersion, Path mappingsDir) {
@@ -155,10 +186,10 @@ public final class MappingRepository {
             String mcpVersion;
 
             if ((!retrieveYarnMappings(yarnMavenId, "mergedv2", true, mappingTree)
-                    && !retrieveYarnMappings(yarnMavenId, null, false, mappingTree))
-                    || !retrieveMcMappings(mcVersion, mappingsDir, mappingTree)
-                    || !retrieveSrgMappings(mcVersion, mappingsDir, mappingTree)
-                    || (mcpVersion = retrieveMcpMappings(mcVersion, mappingsDir, mappingTree)) == null) {
+                && !retrieveYarnMappings(yarnMavenId, null, false, mappingTree))
+                || !retrieveMcMappings(mcVersion, mappingsDir, mappingTree, true)
+                || !retrieveTSrgMappings(mcVersion, mappingsDir, mappingTree, true)
+                || (mcpVersion = retrieveMcpMappings(mcVersion, mappingsDir, mappingTree)) == null) {
                 return null;
             }
 
@@ -204,7 +235,7 @@ public final class MappingRepository {
         return false; // no mappings/mappings.tiny
     }
 
-    private static boolean retrieveMcMappings(String mcVersion, Path mappingsDir, MemoryMappingTree visitor) throws URISyntaxException, IOException, InterruptedException {
+    private static boolean retrieveMcMappings(String mcVersion, Path mappingsDir, MemoryMappingTree visitor, boolean blockNewClass) throws URISyntaxException, IOException, InterruptedException {
         if (mcVersion.indexOf('/') >= 0) throw new IllegalArgumentException("invalid mc version: " + mcVersion);
 
         Path file = mappingsDir.resolve("mc").resolve("mojmap-%s.map".formatted(mcVersion));
@@ -217,7 +248,15 @@ public final class MappingRepository {
 
         if (Files.size(file) > 0) {
             try (Reader reader = Files.newBufferedReader(file)) {
-                ProGuardReader.read(reader, "mojmap", "official", new MappingSourceNsSwitch(new NewElementBlocker(visitor, visitor), "official"));
+                ProGuardReader.read(
+                    reader,
+                    "mojmap",
+                    "official",
+                    new MappingSourceNsSwitch(
+                        blockNewClass ? new NewElementBlocker(visitor, visitor) : visitor,
+                        "official"
+                    )
+                );
             }
         }
 
@@ -280,6 +319,7 @@ public final class MappingRepository {
 
         if (mappingsUrl == null) { // no mappings for the version
             Files.deleteIfExists(out);
+            Files.createDirectories(out.getParent());
             Files.createFile(out);
             return true;
         }
@@ -358,10 +398,37 @@ public final class MappingRepository {
         }
     }
 
-    private static boolean retrieveSrgMappings(String mcVersion, Path mappingsDir, MemoryMappingTree visitor) throws URISyntaxException, IOException, InterruptedException {
+    private static boolean retrieveTSrgMappings(String mcVersion, Path mappingsDir, MemoryMappingTree visitor, boolean blockNewClass) throws URISyntaxException, IOException, InterruptedException {
         if (mcVersion.indexOf('/') >= 0) throw new IllegalArgumentException("invalid mc version: " + mcVersion);
 
         Path file = mappingsDir.resolve("srg").resolve("srg-%s.tsrg".formatted(mcVersion));
+
+        if (!Files.exists(file)) {
+            if (!downloadTSrgMappings(mcVersion, file)) {
+                return false;
+            }
+        }
+
+        if (Files.size(file) > 0) {
+            try (Reader reader = Files.newBufferedReader(file)) {
+                TsrgReader.read(reader, new MappingNsRenamer(
+                    blockNewClass ? new NewElementBlocker(visitor, visitor) : visitor,
+                    Map.of(
+                        MappingUtil.NS_SOURCE_FALLBACK, "official",
+                        MappingUtil.NS_TARGET_FALLBACK, "srg",
+                        "obf", "official"
+                    )));
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private static boolean retrieveSrgMappings(String mcVersion, Path mappingsDir, MemoryMappingTree visitor, boolean blockNewClass) throws URISyntaxException, IOException, InterruptedException {
+        if (mcVersion.indexOf('/') >= 0) throw new IllegalArgumentException("invalid mc version: " + mcVersion);
+
+        Path file = mappingsDir.resolve("srg").resolve("srg-%s.srg".formatted(mcVersion));
 
         if (!Files.exists(file)) {
             if (!downloadSrgMappings(mcVersion, file)) {
@@ -371,17 +438,57 @@ public final class MappingRepository {
 
         if (Files.size(file) > 0) {
             try (Reader reader = Files.newBufferedReader(file)) {
-                TsrgReader.read(reader, new MappingNsRenamer(new NewElementBlocker(visitor, visitor),
-                        Map.of(MappingUtil.NS_SOURCE_FALLBACK, "official",
-                                MappingUtil.NS_TARGET_FALLBACK, "srg",
-                                "obf", "official")));
+                SrgReader.read(reader, new MappingNsRenamer(
+                    blockNewClass ? new NewElementBlocker(visitor, visitor) : visitor,
+                    Map.of(
+                        MappingUtil.NS_SOURCE_FALLBACK, "official",
+                        MappingUtil.NS_TARGET_FALLBACK, "srg",
+                        "obf", "official"
+                    )));
             }
         }
 
         return true;
     }
 
-    private static boolean downloadSrgMappings(String mcVersion, Path out) throws URISyntaxException, IOException, InterruptedException {
+    private static boolean downloadSrgMappings(String mcVersion, Path out) {
+        try {
+            String mavenPath = "/de/oceanlabs/mcp/mcp/%1$s/mcp-%1$s-srg.zip".formatted(mcVersion);
+            HttpResponse response = HttpUtil.makeRequest(HttpUtil.toUri("maven.minecraftforge.net", mavenPath));
+
+            if (response.statusCode() != 200) {
+                if (response.statusCode() == 404) {
+                    Files.deleteIfExists(out);
+                    Files.createFile(out);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            try (ZipInputStream zis = new ZipInputStream(response.inputStream())) {
+                ZipEntry entry;
+
+                while ((entry = zis.getNextEntry()) != null) {
+                    if (entry.getName().equals("joined.srg")) {
+                        Files.createDirectories(out.toAbsolutePath().getParent());
+                        Files.copy(zis, out, StandardCopyOption.REPLACE_EXISTING);
+
+                        return true;
+                    }
+                }
+            }
+
+            LOGGER.warn("can't find joined.tsrg in {} mcp_config", mcVersion);
+
+            return false; // no config/joined.tsrg
+        } catch (IOException e) {
+            HttpUtil.logError("fetching/parsing srg mappings for %s failed".formatted(mcVersion), e, LOGGER);
+            return false;
+        }
+    }
+
+    private static boolean downloadTSrgMappings(String mcVersion, Path out) throws URISyntaxException, IOException, InterruptedException {
         try {
             HttpResponse response = HttpUtil.makeRequest(HttpUtil.toUri("maven.minecraftforge.net", getMavenPath("de.oceanlabs.mcp:mcp_config:%s".formatted(mcVersion), null, "zip")));
 
@@ -418,7 +525,8 @@ public final class MappingRepository {
     }
 
     private static String retrieveMcpMappings(String mcVersion, Path mappingsDir, MemoryMappingTree visitor) throws URISyntaxException, IOException, InterruptedException {
-        if (!visitor.getDstNamespaces().contains("srg")) return ""; // worthless without srg mappings
+        if (visitor.getDstNamespaces() == null || !visitor.getDstNamespaces().contains("srg"))
+            return ""; // worthless without srg mappings
 
         String majorMinorMcVersion;
         int lastSegmentPos = mcVersion.lastIndexOf('.');
@@ -451,12 +559,12 @@ public final class MappingRepository {
                     int pos = version.lastIndexOf('-') + 1;
 
                     if (version.length() == mcVersion.length() + pos
-                            && version.startsWith(mcVersion, pos)) {
+                        && version.startsWith(mcVersion, pos)) {
                         mcpVersion = version;
                         break;
                     } else if (majorMinorMcVersion != null
-                            && mcpVersionFuzzy == null
-                            && version.startsWith(majorMinorMcVersion, pos)) {
+                        && mcpVersionFuzzy == null
+                        && version.startsWith(majorMinorMcVersion, pos)) {
                         mcpVersionFuzzy = version;
                     }
                 }

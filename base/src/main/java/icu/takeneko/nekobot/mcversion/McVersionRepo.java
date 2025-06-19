@@ -54,10 +54,18 @@ public final class McVersionRepo {
         if (version.equalsIgnoreCase("latest") || version.equalsIgnoreCase("latestStable")) return true;
         if (version.contains("/")) return false;
 
-        return validVersions.computeIfAbsent(version, McVersionRepo::checkVersion);
+        return validVersions.computeIfAbsent(version, McVersionRepo::lookupVersion);
     }
 
-    private static boolean checkVersion(String version) {
+    private static boolean lookupVersion(String version) {
+        boolean result = checkVersionWithFabric(version);
+        if (result) return true;
+        VersionData data = MinecraftVersion.INSTANCE.get(version);
+        result = data != null;
+        return result;
+    }
+
+    private static boolean checkVersionWithFabric(String version) {
         try {
             HttpResponse response = HttpUtil.makeRequest(HttpUtil.toUri(metaHost, "/v2/versions/game"));
 
