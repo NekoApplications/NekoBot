@@ -1,6 +1,6 @@
 package icu.takeneko.nekobot
 
-import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.message.builder.MessageCreator
 import icu.takeneko.nekobot.message.MessageType
 import icu.takeneko.nekobot.message.CommandContextMiraiImpl
 import icu.takeneko.nekobot.util.BuildProperties
@@ -82,9 +82,9 @@ object PluginMain : KotlinPlugin(
         }
     }
 
-    fun MessageResponseCreationScope.mirai(): MessageChain {
+    fun MessageCreator.mirai(): MessageChain {
         return MessageChainBuilder().apply {
-            for (string in this@mirai.builder) {
+            for (string in this@mirai.builders) {
                 this.append(string)
             }
         }.build()

@@ -2,14 +2,14 @@ package icu.takeneko.nekobot.command
 
 import icu.takeneko.nekobot.config.config
 import icu.takeneko.nekobot.message.CommandContext
-import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.message.builder.MessageCreator
 import icu.takeneko.nekobot.message.MessageType
 import java.util.regex.Pattern
 
 abstract class Command {
     open val commandPrefix: String = "!"
     open val helpMessage: String = ""
-    abstract fun handle(commandMessage: CommandMessage): MessageResponseCreationScope
+    abstract fun handle(commandMessage: CommandMessage): MessageCreator
     operator fun invoke(commandMessage: CommandMessage) = handle(commandMessage)
 }
 
@@ -26,8 +26,8 @@ class CommandMessage(val context: CommandContext) {
         }
     }
 
-    fun createResponse(fn: MessageResponseCreationScope.() -> Unit): MessageResponseCreationScope {
-        return MessageResponseCreationScope(context).apply(fn)
+    fun createResponse(fn: MessageCreator.() -> Unit): MessageCreator {
+        return MessageCreator(context).apply(fn)
     }
 
     operator fun <T> invoke(fn: CommandMessage.() -> T): T {

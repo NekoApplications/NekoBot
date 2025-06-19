@@ -19,7 +19,7 @@ import icu.takeneko.nekobot.config.loadConfig
 import icu.takeneko.nekobot.i18n.I18n
 import icu.takeneko.nekobot.mcversion.MinecraftVersion
 import icu.takeneko.nekobot.message.CommandContext
-import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.message.builder.MessageCreator
 import icu.takeneko.nekobot.preference.Preference
 import icu.takeneko.nekobot.util.getVersionInfoString
 import org.slf4j.LoggerFactory
@@ -97,7 +97,7 @@ class NekoBot(private val commandPrefix: String = "!") {
         logger.info("Bootstrapped NekoBot " + getVersionInfoString())
     }
 
-    fun acceptCommand(ctx: CommandContext): MessageResponseCreationScope? {
+    fun acceptCommand(ctx: CommandContext): MessageCreator? {
         return commandManager.run(ctx)
     }
 }

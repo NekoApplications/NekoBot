@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     java
     application
@@ -44,9 +42,16 @@ kotlin {
     jvmToolchain(21)
 }
 
+val ktor_version: String by project
+
 dependencies {
     implementation(project(":base"))
     implementation("net.cjsah.bot:HeyBoxBotConsole:1.1.3")
+
+    implementation("io.ktor:ktor-client-core:${ktor_version}")
+    implementation("io.ktor:ktor-client-cio:${ktor_version}")
+    implementation("io.ktor:ktor-client-content-negotiation:${ktor_version}")
+
 }
 
 apply(from = rootProject.file("buildSrc/shared.gradle.kts"))

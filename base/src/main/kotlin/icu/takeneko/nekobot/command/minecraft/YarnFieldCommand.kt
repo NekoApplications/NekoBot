@@ -2,7 +2,7 @@ package icu.takeneko.nekobot.command.minecraft
 
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
-import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.message.builder.MessageCreator
 import icu.takeneko.nekobot.util.getDescOrElse
 import icu.takeneko.nekobot.util.getNameOrElse
 
@@ -13,10 +13,10 @@ class YarnFieldCommand : Command() {
     override val helpMessage: String
         get() = "yf <fieldName> Optional[<version> | latest | latestStable]"
 
-    override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
+    override fun handle(commandMessage: CommandMessage): MessageCreator {
         return commandMessage.createResponse() {
             if (commandMessage.args.isEmpty()) {
-                + "`$helpMessage`"
+                +"`$helpMessage`"
                 return@createResponse
             }
             val version = versionRepository.resolve(commandMessage[1]) ?: run {
@@ -33,21 +33,23 @@ class YarnFieldCommand : Command() {
                 +"no matches for the given method name, MC version and query namespace"
                 return@createResponse
             }
-            +"$version matches"
+
             for (result in results) {
-                +"**Class Names**"
-                +""
-                for (namespace in namespaces) {
-                    +"**$namespace:** ${result.owner.getName(namespace) ?: continue}"
-                }
-                +""
-                +"**Field Names**"
-                for (namespace in namespaces) {
-                    +"**$namespace:** ${result.getName(namespace) ?: continue}"
-                }
-                +""
-                +String.format(
-                    """
+                page {
+                    +"$version matches"
+                    +"**Class Names**"
+                    newParagraph()
+                    for (namespace in namespaces) {
+                        +"**$namespace:** ${result.owner.getName(namespace) ?: continue}"
+                    }
+                    newParagraph()
+                    +"**Field Names**"
+                    for (namespace in namespaces) {
+                        +"**$namespace:** ${result.getName(namespace) ?: continue}"
+                    }
+                    newParagraph()
+                    +String.format(
+                        """
                             **Yarn Field Descriptor**  
                             %3${'$'}s  
                             
@@ -64,17 +66,21 @@ class YarnFieldCommand : Command() {
                             `L%4${'$'}s;%5${'$'}s%6${'$'}s`  
 
                             """.trimIndent(),
-                    result.owner.getName("yarn") ?: continue,
-                    result.getName("yarn") ?: continue,
-                    result.getDesc("yarn") ?: continue,
-                    result.owner.getNameOrElse("mojmap", "mcp") ?: continue,
-                    result.getNameOrElse("mojmap", "mcp") ?: continue,
-                    result.getDescOrElse("mojmap", "mcp") ?: continue
-                )
-                +"#### Access Transformer"
-                +"`public-f ${result.owner.getNameOrElse("mcp", "mojmap")} ${result.getNameOrElse("mcp", "mojmap")?.replace("/", ".")}`"
+                        result.owner.getName("yarn") ?: drop(),
+                        result.getName("yarn") ?: drop(),
+                        result.getDesc("yarn") ?: drop(),
+                        result.owner.getNameOrElse("mojmap", "mcp") ?: drop(),
+                        result.getNameOrElse("mojmap", "mcp") ?: drop(),
+                        result.getDescOrElse("mojmap", "mcp") ?: drop()
+                    )
+                    +"#### Access Transformer"
+                    +"`public-f ${result.owner.getNameOrElse("mcp", "mojmap")} ${
+                        result.getNameOrElse("mcp", "mojmap")?.replace("/", ".")
+                    }`"
+                    +"query ns: ${namespaces.joinToString(",")}"
+                }
             }
-            +"query ns: ${namespaces.joinToString(",")}"
+
         }
     }
 }

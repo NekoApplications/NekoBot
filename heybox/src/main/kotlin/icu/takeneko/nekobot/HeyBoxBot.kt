@@ -3,16 +3,15 @@ package icu.takeneko.nekobot
 import icu.takeneko.nekobot.config.config
 import icu.takeneko.nekobot.heybox.NekoWebsocketClient
 import icu.takeneko.nekobot.heybox.event.EventDispatcher
+import icu.takeneko.nekobot.heybox.heybox
 import icu.takeneko.nekobot.message.CommandContextHeyboxImpl
-import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.message.builder.LocalImageElement
+import icu.takeneko.nekobot.message.builder.RemoteImageElement
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.plus
 import net.cjsah.bot.api.Api
-import net.cjsah.bot.api.CardBuilder
-import net.cjsah.bot.api.card.CardItem
-import net.cjsah.bot.data.TextType
 import net.cjsah.bot.event.events.CommandEvent
 import net.cjsah.bot.event.events.MessageEvent
 import org.java_websocket.enums.ReadyState
@@ -26,6 +25,12 @@ private val logger = LoggerFactory.getLogger("NekoBot/HeyBox")
 private var websocketClient: NekoWebsocketClient? = null
 val coroutineScope = MainScope() + Dispatchers.IO.limitedParallelism(Runtime.getRuntime().availableProcessors())
 val bot = NekoBot("/")
+
+class HeyBoxBotHost(private val apiKey: String) : NekoBotHost {
+    override fun uploadImage(image: LocalImageElement): RemoteImageElement {
+        TODO("Not yet implemented")
+    }
+}
 
 fun main() {
     val timeStart = System.currentTimeMillis()
@@ -43,6 +48,7 @@ fun main() {
         logger.info("    - " + u.helpMessage)
     }
     Api.setToken(config.token)
+    val host = HeyBoxBotHost(config.token)
     logger.info("Starting HeyBox bot using token: " + config.token)
     websocketClient = NekoWebsocketClient(config.token)
     val timeComplete = System.currentTimeMillis()
@@ -58,11 +64,8 @@ fun main() {
         logger.info("[{}/{}] -> {}", this.senderInfo.nickname, this.senderInfo.id, context.messagePlain)
         val ret = bot.acceptCommand(context) ?: return@subscribe
         Api.sendCardMsg(
-            CardBuilder(this.roomInfo.id, this.channelInfo.id)
+            ret.heybox(this.roomInfo.id, this.channelInfo.id, host)
                 .replay(this.msgId)
-                .card { item ->
-                    createResponseCard(ret, item)
-                }
         )
     }
     //look at my eyes, tell me why, why baby why
@@ -71,11 +74,8 @@ fun main() {
         logger.info("[{}/{}] -> {}", this.userName, this.userId, context.messagePlain)
         val ret = bot.acceptCommand(context) ?: return@subscribe
         Api.sendCardMsg(
-            CardBuilder(this.roomId, this.channelId)
+            ret.heybox(this.roomId, this.channelId, host)
                 .replay(this.msgId)
-                .card { item ->
-                    createResponseCard(ret, item)
-                }
         )
     }
     logger.info("Done(${timeUsed}s)!.")
@@ -86,28 +86,6 @@ fun main() {
     }
 }
 
-private fun createResponseCard(
-    ret: MessageResponseCreationScope,
-    item: CardItem
-) {
-    val stringBuilder = StringBuilder()
-    for (string in ret.builder) {
-        val content = string.replace("<", "＜").replace(">", "＞")
-        if (string.replace(" ", "") == "\n") {
-            item.section {
-                it.text(TextType.MARKDOWN, stringBuilder.toString())
-            }
-            stringBuilder.clear()
-            continue
-        }
-        stringBuilder.append(content)
-    }
-    if (stringBuilder.isNotEmpty()) {
-        item.section {
-            it.text(TextType.MARKDOWN, stringBuilder.toString())
-        }
-    }
-}
 
 fun startWebsocketStateWatcher() {
     thread(start = true, name = "WebsocketStateWatcher", isDaemon = true) {

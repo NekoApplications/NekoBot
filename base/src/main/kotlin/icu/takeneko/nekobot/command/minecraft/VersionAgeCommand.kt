@@ -3,7 +3,7 @@ package icu.takeneko.nekobot.command.minecraft
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
 import icu.takeneko.nekobot.mcversion.MinecraftVersion
-import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.message.builder.MessageCreator
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -17,7 +17,7 @@ class VersionAgeCommand : Command() {
     override val helpMessage: String
         get() = "howold <version>"
 
-    override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
+    override fun handle(commandMessage: CommandMessage): MessageCreator {
         return commandMessage.createResponse {
             if (commandMessage.args.isEmpty()) {
                 +helpMessage

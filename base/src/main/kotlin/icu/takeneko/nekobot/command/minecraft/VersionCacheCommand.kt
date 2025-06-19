@@ -2,7 +2,7 @@ package icu.takeneko.nekobot.command.minecraft
 
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
-import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.message.builder.MessageCreator
 
 class VersionCacheCommand : Command() {
 
@@ -12,33 +12,37 @@ class VersionCacheCommand : Command() {
     override val helpMessage: String
         get() = "vc [p | {[a | add}] [<version> | latest | latestStable]}]"
 
-    override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
+    override fun handle(commandMessage: CommandMessage): MessageCreator {
         return commandMessage.createResponse {
             val scene = commandMessage[0] ?: run {
                 + "`$helpMessage`"
                 return@createResponse
             }
-            when (scene) {
-                "a","add" -> {
-                    val version = versionRepository.resolve(commandMessage[1]) ?: run {
-                        + "Expected version: [<version> | latest | latestStable]"
-                        return@createResponse
+            page{
+                when (scene) {
+                    "a", "add" -> {
+                        val version = versionRepository.resolve(commandMessage[1]) ?: run {
+                            +"Expected version: [<version> | latest | latestStable]"
+                            return@createResponse
+                        }
+                        if (version !in mappingRepository.cachedVersions) {
+                            mappingRepository.getMappingData(version)
+                            +"Created Mapping cache for version $version"
+                            return@createResponse
+                        }
+                        +"Version $version already cached."
                     }
-                    if (version !in mappingRepository.cachedVersions) {
-                        mappingRepository.getMappingData(version)
-                        +"Created Mapping cache for version $version"
-                        return@createResponse
+
+                    "p" -> {
+                        +"**Cached Version Mapping Data**"
+                        newParagraph()
+                        for (version in mappingRepository.cachedVersions) {
+                            +version
+                        }
                     }
-                    +"Version $version already cached."
+
+                    else -> +"`$helpMessage`"
                 }
-                "p" -> {
-                    +"**Cached Version Mapping Data**"
-                    +""
-                    for (version in mappingRepository.cachedVersions) {
-                        +version
-                    }
-                }
-                else -> + "`$helpMessage`"
             }
         }
     }

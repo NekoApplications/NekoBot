@@ -2,7 +2,7 @@ package icu.takeneko.nekobot.command.minecraft
 
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
-import icu.takeneko.nekobot.message.MessageResponseCreationScope
+import icu.takeneko.nekobot.message.builder.MessageCreator
 import icu.takeneko.nekobot.util.getDescOrElse
 import icu.takeneko.nekobot.util.getNameOrElse
 
@@ -14,7 +14,7 @@ class YarnMethodCommand : Command() {
     override val helpMessage: String
         get() = "ym <methodName> Optional[<version> | latest | latestStable]"
 
-    override fun handle(commandMessage: CommandMessage): MessageResponseCreationScope {
+    override fun handle(commandMessage: CommandMessage): MessageCreator {
         return commandMessage.createResponse {
             if (commandMessage.args.isEmpty()) {
                 + "`$helpMessage`"
@@ -34,21 +34,23 @@ class YarnMethodCommand : Command() {
                 +"no matches for the given method name, MC version and query namespace"
                 return@createResponse
             }
-            +"$version matches"
+
             for (result in results) {
-                +"**Class Names**"
-                +""
-                for (namespace in namespaces) {
-                    +"**$namespace:** `${result.owner.getName(namespace) ?: continue}`"
-                }
-                +""
-                +"**Method Names**"
-                for (namespace in namespaces) {
-                    +"**$namespace:** `${result.getName(namespace) ?: continue}`"
-                }
-                +""
-                +String.format(
-                    """
+                page {
+                    +"$version matches"
+                    +"**Class Names**"
+                    newParagraph()
+                    for (namespace in namespaces) {
+                        +"**$namespace:** `${result.owner.getName(namespace) ?: continue}`"
+                    }
+                    newParagraph()
+                    +"**Method Names**"
+                    for (namespace in namespaces) {
+                        +"**$namespace:** `${result.getName(namespace) ?: continue}`"
+                    }
+                    newParagraph()
+                    +String.format(
+                        """
                             **Yarn Field Descriptor**
 
                             %3${'$'}s
@@ -69,22 +71,24 @@ class YarnMethodCommand : Command() {
                             `L%4${'$'}s;%5${'$'}s%6${'$'}s`
 
                             """.trimIndent(),
-                    result.owner.getName("yarn")?: continue,
-                    result.getName("yarn")?: continue,
-                    result.getDesc("yarn")?: continue,
-                    result.owner.getNameOrElse("mojmap", "mcp")?: continue,
-                    result.getNameOrElse("mojmap", "mcp")?: continue,
-                    result.getDescOrElse("mojmap", "mcp")?: continue
-                )
-                +"**Access Transformer**"
-                +"`public ${result.owner.getNameOrElse("mcp", "mojmap")?.replace("/", ".")} ${
-                    result.getNameOrElse(
-                        "mcp",
-                        "mojmap"
+                        result.owner.getName("yarn")?: drop(),
+                        result.getName("yarn")?: drop(),
+                        result.getDesc("yarn")?: drop(),
+                        result.owner.getNameOrElse("mojmap", "mcp")?: drop(),
+                        result.getNameOrElse("mojmap", "mcp")?: drop(),
+                        result.getDescOrElse("mojmap", "mcp")?: drop()
                     )
-                }${result.getDescOrElse("mcp", "mojmap")}`"
+                    newParagraph()
+                    +"**Access Transformer**"
+                    +"`public ${result.owner.getNameOrElse("mcp", "mojmap")?.replace("/", ".")} ${
+                        result.getNameOrElse(
+                            "mcp",
+                            "mojmap"
+                        )
+                    }${result.getDescOrElse("mcp", "mojmap")}`"
+                    +"query ns: ${namespaces.joinToString(",")}"
+                }
             }
-            +"query ns: ${namespaces.joinToString(",")}"
         }
     }
 }
