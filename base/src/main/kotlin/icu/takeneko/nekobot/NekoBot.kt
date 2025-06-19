@@ -5,6 +5,7 @@ import icu.takeneko.nekobot.command.management.GroupCommand
 import icu.takeneko.nekobot.command.management.GroupRuleCommand
 import icu.takeneko.nekobot.command.management.HelpCommand
 import icu.takeneko.nekobot.command.minecraft.MinecraftVersionCommand
+import icu.takeneko.nekobot.command.minecraft.VersionAgeCommand
 import icu.takeneko.nekobot.command.minecraft.VersionCacheCommand
 import icu.takeneko.nekobot.command.minecraft.YarnClassCommand
 import icu.takeneko.nekobot.command.minecraft.YarnFieldCommand
@@ -68,6 +69,7 @@ class NekoBot(private val commandPrefix: String = "!") {
             register(MinecraftVersionCommand())
             register(CalculatorCommand())
             register(PreferenceCommand())
+            register(VersionAgeCommand())
         }
         logger.info("Command Registered: ${commandManager.commandPrefixes.joinToString(", ")}")
     }
