@@ -80,7 +80,7 @@ fun main() {
     }
     logger.info("Done(${timeUsed}s)!.")
     websocketClient!!.connectBlocking()
-    while (shouldKeepRunning) {
+    while (HeyboxEnvironment.shouldKeepRunning) {
         if (websocketClient != null) {
             if (websocketClient!!.readyState == ReadyState.CLOSED) {
                 logger.warn("Disconnected from HeyBox Server.")
