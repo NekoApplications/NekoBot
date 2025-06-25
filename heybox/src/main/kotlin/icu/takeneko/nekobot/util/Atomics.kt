@@ -1,15 +1,15 @@
 package icu.takeneko.nekobot.util
 
-import kotlin.concurrent.atomics.AtomicInt
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.reflect.KProperty
 
 @OptIn(ExperimentalAtomicApi::class)
-operator fun AtomicInt.getValue(pinger: Any?, prop: KProperty<*>): Int {
-    return this.load()
+operator fun AtomicInteger.getValue(pinger: Any?, prop: KProperty<*>): Int {
+    return this.get()
 }
 
 @OptIn(ExperimentalAtomicApi::class)
-operator fun AtomicInt.setValue(pinger: Any?, prop: KProperty<*>, value: Int) {
-    this.store(value)
+operator fun AtomicInteger.setValue(pinger: Any?, prop: KProperty<*>, value: Int) {
+    this.set(value)
 }

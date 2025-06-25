@@ -8,14 +8,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlin.concurrent.atomics.AtomicInt
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 class HeartBeatPinger(host: HeartBeatHost) : HeartBeatHost by host {
     private var shouldKeepRunning = true
 
     @OptIn(ExperimentalAtomicApi::class)
-    private var counter by AtomicInt(0)
+    private var counter by AtomicInteger(0)
 
     @OptIn(ObsoleteCoroutinesApi::class)
     private val ticker = flow {
