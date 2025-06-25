@@ -26,6 +26,7 @@ private val logger = LoggerFactory.getLogger("NekoBot/HeyBox")
 private var websocketClient: NekoWebsocketClient? = null
 val coroutineScope = MainScope() + Dispatchers.IO.limitedParallelism(Runtime.getRuntime().availableProcessors())
 val bot = NekoBot("/")
+var shouldKeepRunning = true
 
 fun main() {
     val timeStart = System.currentTimeMillis()
@@ -48,6 +49,7 @@ fun main() {
     val timeComplete = System.currentTimeMillis()
     val timeUsed = (timeComplete - timeStart) / 1000f
     Runtime.getRuntime().addShutdownHook(thread(start = false, name = "ShutdownThread") {
+        shouldKeepRunning = false
         if (websocketClient != null) {
             websocketClient!!.shutdown()
         }
@@ -80,9 +82,15 @@ fun main() {
     }
     logger.info("Done(${timeUsed}s)!.")
     websocketClient!!.connectBlocking()
-    startWebsocketStateWatcher()
-    while (true) {
-        LockSupport.parkNanos(100)
+    while (shouldKeepRunning) {
+        if (websocketClient != null) {
+            if (websocketClient!!.readyState == ReadyState.CLOSED) {
+                logger.warn("Disconnected from HeyBox Server.")
+                logger.info("Reconnecting.")
+                websocketClient!!.reconnectBlocking()
+            }
+        }
+        LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1))
     }
 }
 
@@ -105,21 +113,6 @@ private fun createResponseCard(
     if (stringBuilder.isNotEmpty()) {
         item.section {
             it.text(TextType.MARKDOWN, stringBuilder.toString())
-        }
-    }
-}
-
-fun startWebsocketStateWatcher() {
-    thread(start = true, name = "WebsocketStateWatcher", isDaemon = true) {
-        while (true) {
-            if (websocketClient != null) {
-                if (websocketClient!!.readyState == ReadyState.CLOSED) {
-                    logger.warn("Disconnected from HeyBox Server.")
-                    logger.info("Reconnecting.")
-                    websocketClient!!.reconnectBlocking()
-                }
-            }
-            LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1))
         }
     }
 }
