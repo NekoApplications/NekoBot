@@ -1,6 +1,7 @@
 package icu.takeneko.nekobot.heybox.ws
 
 import icu.takeneko.nekobot.CoreEnvironment
+import icu.takeneko.nekobot.HeyboxEnvironment
 import icu.takeneko.nekobot.util.getValue
 import icu.takeneko.nekobot.util.setValue
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -31,7 +32,7 @@ class HeartBeatPinger(host: HeartBeatHost) : HeartBeatHost by host {
     fun start() {
         ticker.onEach {
             tick()
-        }.launchIn(CoreEnvironment.coroutineScope)
+        }.launchIn(HeyboxEnvironment.coroutineScope)
     }
 
     private fun tick() {

@@ -20,7 +20,7 @@ jobs:
     name: Gradle-Build
     
     # The type of runner that the job will run on
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -32,7 +32,7 @@ jobs:
       - name: Setup Java JDK
         uses: actions/setup-java@v3
         with:
-          java-version: 11
+          java-version: 21
           distribution: 'zulu'
           cache: 'gradle'
 
@@ -43,5 +43,18 @@ jobs:
       # Build
       - name: Make gradlew executable
         run: chmod +x ./gradlew
+
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew shadowJar
+
+      - name: upload file
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'heybox'
+          path: './heybox/build/libs'
+
+      - name: upload file
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'mirai plugin'
+          path: './mirai/build/libs'

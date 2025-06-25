@@ -1,6 +1,6 @@
 package icu.takeneko.nekobot.heybox.event
 
-import icu.takeneko.nekobot.CoreEnvironment.coroutineScope
+import icu.takeneko.nekobot.HeyboxEnvironment.coroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.cjsah.bot.event.Event
