@@ -1,6 +1,6 @@
 package icu.takeneko.nekobot.command
 
-import icu.takeneko.nekobot.Environment
+import icu.takeneko.nekobot.CoreEnvironment
 import icu.takeneko.nekobot.config.GroupRuleSetting
 import icu.takeneko.nekobot.message.CommandContext
 import icu.takeneko.nekobot.message.MessageResponseCreationScope
@@ -19,7 +19,7 @@ class CommandManager(private val commandPrefix: String) {
         if (!commandMessage.commandPrefix.startsWith(commandPrefix)) return null
         val prefix = commandMessage.commandPrefix.substring(1)
         if (commands.containsKey(prefix)) {
-            if (context.isGroupMessage() && Environment.permissionManagementEnabled) {
+            if (context.isGroupMessage() && CoreEnvironment.permissionManagementEnabled) {
                 if (!GroupRuleSetting.botEnabledFor(context.describeGroup())) {
                     return null
                 }

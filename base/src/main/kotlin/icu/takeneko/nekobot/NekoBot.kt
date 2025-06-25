@@ -61,7 +61,7 @@ class NekoBot(private val commandPrefix: String = "!") {
             register(YarnMethodCommand())
             register(YarnFieldCommand())
             register(HelpCommand())
-            if (Environment.permissionManagementEnabled) {
+            if (CoreEnvironment.permissionManagementEnabled) {
                 register(GroupCommand())
                 register(GroupRuleCommand())
             }

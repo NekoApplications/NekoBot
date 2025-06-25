@@ -1,7 +1,7 @@
 package icu.takeneko.nekobot
 
 import icu.takeneko.nekobot.config.config
-import icu.takeneko.nekobot.heybox.NekoWebsocketClient
+import icu.takeneko.nekobot.heybox.ws.NekoWebsocketClient
 import icu.takeneko.nekobot.heybox.event.EventDispatcher
 import icu.takeneko.nekobot.message.CommandContextHeyboxImpl
 import icu.takeneko.nekobot.message.MessageResponseCreationScope
@@ -24,13 +24,12 @@ import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger("NekoBot/HeyBox")
 private var websocketClient: NekoWebsocketClient? = null
-val coroutineScope = MainScope() + Dispatchers.IO.limitedParallelism(Runtime.getRuntime().availableProcessors())
 val bot = NekoBot("/")
-var shouldKeepRunning = true
 
 fun main() {
+    HeyboxEnvironment.mainThread = Thread.currentThread()
     val timeStart = System.currentTimeMillis()
-    Environment.permissionManagementEnabled = false
+    CoreEnvironment.permissionManagementEnabled = false
     bot.preBootstrap()
     if (config.token.isEmpty()) {
         logger.error("HeyBox token was not properly configured.")
@@ -49,11 +48,10 @@ fun main() {
     val timeComplete = System.currentTimeMillis()
     val timeUsed = (timeComplete - timeStart) / 1000f
     Runtime.getRuntime().addShutdownHook(thread(start = false, name = "ShutdownThread") {
-        shouldKeepRunning = false
+        HeyboxEnvironment.destroy()
         if (websocketClient != null) {
             websocketClient!!.shutdown()
         }
-        coroutineScope.cancel()
     })
     EventDispatcher.subscribe<CommandEvent> {
         val context = CommandContextHeyboxImpl(this, bot.commandManager)

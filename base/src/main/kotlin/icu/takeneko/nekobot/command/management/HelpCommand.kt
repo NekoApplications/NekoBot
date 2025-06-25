@@ -1,6 +1,6 @@
 package icu.takeneko.nekobot.command.management
 
-import icu.takeneko.nekobot.Environment
+import icu.takeneko.nekobot.CoreEnvironment
 import icu.takeneko.nekobot.command.Command
 import icu.takeneko.nekobot.command.CommandMessage
 import icu.takeneko.nekobot.config.GroupRuleSetting
@@ -24,7 +24,7 @@ class HelpCommand : Command() {
             commandMessage.context.manager().commands.forEach {
                 if ((commandMessage.context.messageType == MessageType.PRIVATE
                     || GroupRuleSetting.commandEnabledFor(commandMessage.context.describeGroup(), it.key))
-                    || !Environment.permissionManagementEnabled
+                    || !CoreEnvironment.permissionManagementEnabled
                 ) {
                     +"`${it.value.helpMessage}`"
                 }
