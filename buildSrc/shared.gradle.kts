@@ -1,4 +1,5 @@
 import java.io.ByteArrayOutputStream
+import org.gradle.api.Project
 
 tasks.register("generateProperties") {
     doLast {
@@ -7,21 +8,23 @@ tasks.register("generateProperties") {
 }
 
 fun getGitBranch(): String {
-    val stdout = ByteArrayOutputStream()
-    exec {
-        commandLine("git", "symbolic-ref", "--short", "-q", "HEAD")
-        standardOutput = stdout
-    }
-    return stdout.toString(Charsets.UTF_8).trim()
+    val pb = ProcessBuilder("git", "symbolic-ref", "--short", "-q", "HEAD")
+        .redirectErrorStream(true)
+    val proc = pb.start()
+    val out = proc.inputStream.bufferedReader().use { it.readText() }.trim()
+    val exit = proc.waitFor()
+    if (exit != 0) return "" // or throw/handle as you prefer
+    return out
 }
 
 fun getCommitId(): String {
-    val stdout = ByteArrayOutputStream()
-    exec {
-        commandLine("git", "rev-parse", "HEAD")
-        standardOutput = stdout
-    }
-    return stdout.toString(Charsets.UTF_8).trim()
+    val pb = ProcessBuilder("git", "rev-parse", "HEAD")
+        .redirectErrorStream(true)
+    val proc = pb.start()
+    val out = proc.inputStream.bufferedReader().use { it.readText() }.trim()
+    val exit = proc.waitFor()
+    if (exit != 0) throw RuntimeException("git rev-parse failed")
+    return out
 }
 
 fun generateProperties() {
