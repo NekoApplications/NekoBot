@@ -3,8 +3,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     java
     application
-    kotlin("jvm")
-    kotlin("plugin.serialization")
+    id("org.jetbrains.kotlin.jvm") version "2.1.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0"
     id("com.gradleup.shadow") version "9.0.0-beta17"
 }
 
@@ -20,9 +20,9 @@ repositories {
     maven("https://maven.covers1624.net/")
 }
 
-application {
-    mainClass = "icu.takeneko.nekobot.acidify.NekoBotAcidify"
-}
+//application {
+//    mainClass = "icu.takeneko.nekobot.acidify.NekoBotAcidify"
+//}
 
 tasks.shadowJar {
     archiveBaseName = "nekobot-acidify"
