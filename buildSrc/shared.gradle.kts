@@ -38,6 +38,7 @@ fun generateProperties() {
         m += "group" to group.toString()
         m += "supported_languages" to project.properties["supported_languages"].toString()
         m += "default_language" to project.properties["default_language"].toString()
+        m += "impl_platform" to (project.properties["impl_platform"]?.toString() ?: "unknown")
         m += "buildTime" to System.currentTimeMillis().toString()
         m += "branch" to getGitBranch()
         m += "commitId" to getCommitId()

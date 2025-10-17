@@ -14,7 +14,8 @@ fun getVersionInfoString(): String {
     val version = BuildProperties["coreVersion"]
     val buildTimeMillis = BuildProperties["buildTime"]?.toLong() ?: 0L
     val buildTime = Date(buildTimeMillis)
-    return "$version (${BuildProperties["branch"]}:${
+    val implPlatform = BuildProperties["impl_platform"] ?: "unknown"
+    return "$version $implPlatform (${BuildProperties["branch"]}:${
         BuildProperties["commitId"]?.substring(0, 7)
     } $buildTime)"
 }

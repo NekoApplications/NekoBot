@@ -4,7 +4,7 @@
     <contextName>nekobot</contextName>
     <property name="LOG_HOME" value="logs"/>
     <conversionRule conversionWord="customColor"
-                   class="icu.takeneko.nekobot.util.LogbackCustomColor"/>
+                    class="icu.takeneko.nekobot.acidify.util.LogbackCustomColor"/>
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">

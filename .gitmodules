@@ -1,0 +1,3 @@
+[submodule "acid/acidify"]
+	path = acid/acidify
+	url = https://github.com/LagrangeDev/acidify.git

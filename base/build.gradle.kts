@@ -28,9 +28,9 @@ kotlin {
 val ktor_version: String by project
 
 dependencies {
-    api("ch.qos.logback:logback-core:1.2.11")
-    api("org.slf4j:slf4j-api:1.7.36")
-    api("ch.qos.logback:logback-classic:1.2.11")
+    api("ch.qos.logback:logback-core:1.5.19")
+    api("ch.qos.logback:logback-classic:1.5.13")
+    api("org.slf4j:slf4j-api:2.0.0")
 
     api("com.google.code.gson:gson:2.9.0")
     api("it.unimi.dsi:fastutil-core:8.5.4")
