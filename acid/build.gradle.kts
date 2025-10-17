@@ -20,9 +20,9 @@ repositories {
     maven("https://maven.covers1624.net/")
 }
 
-//application {
-//    mainClass = "icu.takeneko.nekobot.acidify.NekoBotAcidify"
-//}
+application {
+    mainClass = "icu.takeneko.nekobot.acidify.NekoBotAcidify"
+}
 
 tasks.shadowJar {
     archiveBaseName = "nekobot-acidify"
