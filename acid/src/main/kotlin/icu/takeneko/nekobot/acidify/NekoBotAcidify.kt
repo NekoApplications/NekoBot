@@ -13,15 +13,19 @@ import kotlinx.coroutines.runBlocking
 import org.ntqqrev.acidify.Bot
 import org.ntqqrev.acidify.common.AppInfo
 import org.ntqqrev.acidify.common.SessionStore
+import org.ntqqrev.acidify.common.UrlSignProvider
 import org.ntqqrev.acidify.event.AcidifyEvent
 import org.ntqqrev.acidify.event.BotOfflineEvent
 import org.ntqqrev.acidify.event.MessageReceiveEvent
 import org.ntqqrev.acidify.event.QRCodeGeneratedEvent
+import org.ntqqrev.acidify.logging.LogHandler
+import org.ntqqrev.acidify.logging.LogLevel
+import org.ntqqrev.acidify.login
 import org.ntqqrev.acidify.message.BotIncomingMessage
 import org.ntqqrev.acidify.message.MessageScene
-import org.ntqqrev.acidify.util.UrlSignProvider
-import org.ntqqrev.acidify.util.log.LogHandler
-import org.ntqqrev.acidify.util.log.LogLevel
+import org.ntqqrev.acidify.qrCodeLogin
+import org.ntqqrev.acidify.sendFriendMessage
+import org.ntqqrev.acidify.sendGroupMessage
 import org.slf4j.LoggerFactory
 import java.util.concurrent.locks.LockSupport
 import kotlin.coroutines.CoroutineContext
@@ -64,14 +68,16 @@ object NekoBotAcidify : CoroutineScope {
         nekoBot.preBootstrap()
         nekoBot.bootstrap()
         logger.info("Logging in using protocol ${appInfo.os} ${appInfo.currentVersion} (AppId: ${appInfo.subAppId})")
-        this.bot = Bot(
-            appInfo = appInfo,
-            sessionStore = sessionStore,
-            signProvider = signProvider,
-            scope = this,
-            minLogLevel = LogLevel.DEBUG,
-            logHandler = logger.toAcidifyLogHandler()
-        )
+        this.bot = runBlocking {
+            Bot.create(
+                appInfo = appInfo,
+                sessionStore = sessionStore,
+                signProvider = signProvider,
+                scope = this,
+                minLogLevel = LogLevel.DEBUG,
+                logHandler = logger.toAcidifyLogHandler()
+            )
+        }
         if (config.persistentSessionStorage) {
             SessionStorageSupport.configureSessionAutoSave(bot)
         }
@@ -80,7 +86,7 @@ object NekoBotAcidify : CoroutineScope {
         }
         val job = this.launch {
             if (config.persistentSessionStorage) {
-                bot.tryLogin()
+                bot.login()
             } else {
                 bot.qrCodeLogin()
             }
@@ -171,21 +177,20 @@ object NekoBotAcidify : CoroutineScope {
 
     private fun Logger.toAcidifyLogHandler(): LogHandler =
         LogHandler { level, tag, message, throwable ->
-            val trueMessage = message
             when (level) {
-                LogLevel.VERBOSE -> trace(trueMessage)
-                LogLevel.DEBUG -> debug(trueMessage)
-                LogLevel.INFO -> info(trueMessage)
+                LogLevel.VERBOSE -> trace(message)
+                LogLevel.DEBUG -> debug(message)
+                LogLevel.INFO -> info(message)
                 LogLevel.WARN -> if (throwable == null) {
-                    warn(trueMessage)
+                    warn(message)
                 } else {
-                    warn(trueMessage, throwable)
+                    warn(message, throwable)
                 }
 
                 LogLevel.ERROR -> if (throwable == null) {
-                    error(trueMessage)
+                    error(message)
                 } else {
-                    error(trueMessage, throwable)
+                    error(message, throwable)
                 }
             }
         }

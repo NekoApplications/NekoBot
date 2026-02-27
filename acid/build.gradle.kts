@@ -39,8 +39,7 @@ kotlin {
 
 dependencies {
     implementation(project(":base"))
-    implementation("acidify:acidify-core")
-    implementation("acidify:yogurt-qrcode")
+    implementation("org.ntqqrev:acidify-core:0.9.0")
 }
 
 apply(from = rootProject.file("buildSrc/shared.gradle.kts"))
