@@ -3,8 +3,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     java
     application
-    id("org.jetbrains.kotlin.jvm") version "2.3.0"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
+    kotlin("jvm")
+    kotlin("plugin.serialization")
     id("com.gradleup.shadow") version "9.0.0-beta17"
 }
 
@@ -15,17 +15,17 @@ repositories {
     maven("https://central.sonatype.com/repository/maven-snapshots/")
     mavenCentral()
     gradlePluginPortal()
+    maven("https://jitpack.io")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
     maven("https://maven.fabricmc.net")
-    maven("https://maven.covers1624.net/")
 }
 
 application {
-    mainClass = "icu.takeneko.nekobot.acidify.NekoBotAcidify"
+    mainClass = "icu.takeneko.nekobot.TelegramBotMainKt"
 }
 
 tasks.shadowJar {
-    archiveBaseName = "nekobot-acidify"
+    archiveBaseName = "nekobot-telegram"
 }
 
 tasks.withType<JavaCompile> {
@@ -39,7 +39,7 @@ kotlin {
 
 dependencies {
     implementation(project(":base"))
-    implementation("org.ntqqrev:acidify-core:0.9.0")
+    implementation("io.github.kotlin-telegram-bot.kotlin-telegram-bot:telegram:6.3.0")
 }
 
 apply(from = rootProject.file("buildSrc/shared.gradle.kts"))

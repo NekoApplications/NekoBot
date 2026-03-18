@@ -21,7 +21,13 @@ repositories {
 tasks.shadowJar {
     archiveBaseName = "nekobot-mirai"
     archiveClassifier = "shadow"
-    exclude("/kotlin/**", "/kotlinx/**", "/net/mamoe/*", "/org/slf4j*", "/ch/qos*")
+
+    exclude(
+        "/kotlinx/serialization/**",
+        "/net/mamoe/*",
+        "/org/slf4j*",
+        "/ch/qos*"
+    )
 }
 
 tasks.withType<JavaCompile> {
@@ -34,10 +40,10 @@ kotlin {
 }
 
 dependencies {
-    compileOnly("top.mrxiaom.mirai:overflow-core-api:1.0.6")
+    compileOnly("top.mrxiaom.mirai:overflow-core-api:1.0.9.677-681cf45-SNAPSHOT")
     compileOnly("net.mamoe:mirai-console:2.16.0")
     compileOnly("net.mamoe:mirai-core:2.16.0")
-
+    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.9.0")
     implementation(project(":base"))
 }
 

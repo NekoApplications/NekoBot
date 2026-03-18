@@ -1,13 +1,14 @@
 package icu.takeneko.nekobot.command
 
 import icu.takeneko.nekobot.CoreEnvironment
+import icu.takeneko.nekobot.NekoBot
 import icu.takeneko.nekobot.config.GroupRuleSetting
 import icu.takeneko.nekobot.message.CommandContext
 import icu.takeneko.nekobot.message.MessageResponseCreationScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class CommandManager(private val commandPrefix: String) {
+class CommandManager(private val commandPrefix: String, val nekoBot: NekoBot) {
     val commands = mutableMapOf<String, Command>()
     val logger: Logger = LoggerFactory.getLogger("CommandManager")
     fun register(command: Command) {

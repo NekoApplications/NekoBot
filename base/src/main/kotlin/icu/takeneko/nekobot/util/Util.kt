@@ -2,6 +2,7 @@ package icu.takeneko.nekobot.util
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import icu.takeneko.nekobot.CoreEnvironment
 import io.ktor.client.engine.*
 import net.fabricmc.mappingio.tree.MappingTree.ElementMapping
 import net.fabricmc.mappingio.tree.MappingTree.MemberMapping
@@ -14,7 +15,7 @@ fun getVersionInfoString(): String {
     val version = BuildProperties["coreVersion"]
     val buildTimeMillis = BuildProperties["buildTime"]?.toLong() ?: 0L
     val buildTime = Date(buildTimeMillis)
-    val implPlatform = BuildProperties["impl_platform"] ?: "unknown"
+    val implPlatform = (BuildProperties["impl_platform"] ?: "unknown") + CoreEnvironment.implementingPlatformSuffix
     return "$version $implPlatform (${BuildProperties["branch"]}:${
         BuildProperties["commitId"]?.substring(0, 7)
     } $buildTime)"

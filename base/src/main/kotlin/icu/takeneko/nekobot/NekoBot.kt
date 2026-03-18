@@ -22,15 +22,19 @@ import icu.takeneko.nekobot.message.CommandContext
 import icu.takeneko.nekobot.message.MessageResponseCreationScope
 import icu.takeneko.nekobot.preference.Preference
 import icu.takeneko.nekobot.util.getVersionInfoString
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
 
-class NekoBot(private val commandPrefix: String = "!") {
+class NekoBot(private val commandPrefix: String = "!"): CoroutineScope {
     private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(2)
     private val logger = LoggerFactory.getLogger("NekoBot")
-    val commandManager: CommandManager = CommandManager(commandPrefix)
+    private val dispatcher = Dispatchers.IO.limitedParallelism(8)
+    val commandManager: CommandManager = CommandManager(commandPrefix, this)
 
     private fun bootstrapMinecraftServices() {
         logger.info("Updating Mapping version.")
@@ -100,4 +104,7 @@ class NekoBot(private val commandPrefix: String = "!") {
     fun acceptCommand(ctx: CommandContext): MessageResponseCreationScope? {
         return commandManager.run(ctx)
     }
+
+    override val coroutineContext: CoroutineContext
+        get() = dispatcher
 }

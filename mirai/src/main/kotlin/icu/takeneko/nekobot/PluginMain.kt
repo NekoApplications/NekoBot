@@ -7,11 +7,14 @@ import icu.takeneko.nekobot.util.BuildProperties
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
+import net.mamoe.mirai.event.Event
 import net.mamoe.mirai.event.GlobalEventChannel
+import net.mamoe.mirai.event.events.BotOnlineEvent
 import net.mamoe.mirai.event.events.FriendMessageEvent
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.MessageChain
 import net.mamoe.mirai.message.data.MessageChainBuilder
+import top.mrxiaom.overflow.contact.RemoteBot
 import java.lang.management.ManagementFactory
 import java.util.concurrent.*
 import kotlin.system.exitProcess
@@ -33,36 +36,38 @@ object PluginMain : KotlinPlugin(
             botInstance.preBootstrap()
             botInstance.bootstrap()
             val eventChannel = GlobalEventChannel.parentScope(this)
-            eventChannel.subscribeAlways<GroupMessageEvent> {
-                launch {
-                    val ret = botInstance.acceptCommand(
-                        CommandContextMiraiImpl(
-                            message,
-                            this@subscribeAlways.group,
-                            this@subscribeAlways.sender,
-                            MessageType.GROUP,
-                            botInstance.commandManager
-                        ),
-                    ) ?: return@launch
-                    it.group.sendMessage(ret.mirai())
-                }
 
+            subscribe<GroupMessageEvent> {
+                val ret = botInstance.acceptCommand(
+                    CommandContextMiraiImpl(
+                        message,
+                        this.group,
+                        this.sender,
+                        MessageType.GROUP,
+                        botInstance.commandManager
+                    ),
+                ) ?: return@subscribe
+                group.sendMessage(ret.mirai())
             }
-            eventChannel.subscribeAlways<FriendMessageEvent> {
-                launch {
-                    val ret = botInstance.acceptCommand(
-                        CommandContextMiraiImpl(
-                            message,
-                            null,
-                            this@subscribeAlways.sender,
-                            MessageType.PRIVATE,
-                            botInstance.commandManager
-                        )
-                    ) ?: return@launch
-                    it.sender.sendMessage(ret.mirai())
-                }
+
+            subscribe<FriendMessageEvent> {
+                val ret = botInstance.acceptCommand(
+                    CommandContextMiraiImpl(
+                        message,
+                        null,
+                        this@subscribe.sender,
+                        MessageType.PRIVATE,
+                        botInstance.commandManager
+                    )
+                ) ?: return@subscribe
+                sender.sendMessage(ret.mirai())
             }
-            Unit
+
+            subscribe<BotOnlineEvent> {
+                if (this.bot !is RemoteBot) return@subscribe
+                val remoteBot  = this.bot as RemoteBot
+                CoreEnvironment.implementingPlatformSuffix = "[${remoteBot.appName}]"
+            }
         }
 
         try {
@@ -79,6 +84,14 @@ object PluginMain : KotlinPlugin(
             logger.error("Plugin initialization failed to complete.", e)
             logger.error("Cowardly refusing to start application because a broken application state.")
             exitProcess(1)
+        }
+    }
+
+    inline fun <reified T : Event> subscribe(noinline handler: suspend T.() -> Unit) {
+        GlobalEventChannel.parentScope(this).subscribeAlways<T> {
+            launch {
+                this@subscribeAlways.handler()
+            }
         }
     }
 
